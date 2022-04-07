@@ -8,25 +8,26 @@ plugins {
 
 ext {
     publishingPath = version.toString().contains("SNAPSHOT") ? 'snapshots' : 'internal'
-    pluginDescription = 'A template for create a gradle plugin'
+    pluginDescription = 'The plugin that allows you access to java keytool commands in gradle as task'
 }
 
 sourceCompatibility = 1.11
 
 pluginBundle {
-    website = '<UPDATE>'
-    vcsUrl = '<UPDATE>'
+    website = 'https://github.com/rcw3bb/simple-keytool'
+    vcsUrl = 'https://github.com/rcw3bb/simple-keytool'
     description = pluginDescription
-    tags = ['<UPDATE>']
+    tags = ['ronella', 'simple-keytool', 'keytool', 'java', 'cacert', 'automation',
+            'certificate management', 'management', 'security']
 }
 
 gradlePlugin {
     plugins {
         templateGradlePlugin {
-            id = 'xyz.ronella.gradle.plugin'
-            displayName = 'Template Gradle Plugin'
+            id = 'xyz.ronella.simple-keytool'
+            displayName = 'Simple Keytool Plugin'
             description = pluginDescription
-            implementationClass = 'xyz.ronella.gradle.plugin.TemplateGradlePlugin'
+            implementationClass = 'xyz.ronella.gradle.plugin.simple.keytool.SimpleKeytoolPlugin'
         }
     }
 }
