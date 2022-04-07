@@ -6,4 +6,8 @@ interface SimpleKeytoolPluginExtension {
 
     Property<Boolean> getVerbose()
 
+    Property<Boolean> getNoop()
+
+    Property<File> getJavaHome()
+
 }

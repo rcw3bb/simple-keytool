@@ -34,7 +34,7 @@ public final class KeytoolExecutor {
         command = builder.command;
         args = builder.args;
         zArgs = builder.zArgs;
-        isAdminMode = builder.isAdminMode;
+        isAdminMode = !builder.runningInAdminMode && builder.isAdminMode;
 
         prepareExecutables();
     }
@@ -60,16 +60,10 @@ public final class KeytoolExecutor {
         Consumer<Supplier<File>> addExecLogic = executables::add;
 
         Optional.ofNullable(javaHome).ifPresent(___javaHome ->
-                addExecLogic.accept(() -> {
-                    System.out.printf("manual=%s%n", ___javaHome);
-                    return Paths.get(___javaHome.getAbsolutePath(), BIN_DIR, EXECUTABLE).toFile();
-                }));
+                addExecLogic.accept(() -> Paths.get(___javaHome.getAbsolutePath(), BIN_DIR, EXECUTABLE).toFile()));
 
         Optional.ofNullable(System.getenv("JAVA_HOME")).ifPresent(___javaHome ->
-                addExecLogic.accept(() -> {
-                    System.out.printf("JAVA_HOME=%s%n", ___javaHome);
-                    return Paths.get(___javaHome, BIN_DIR, EXECUTABLE).toFile();
-                }));
+                addExecLogic.accept(() -> Paths.get(___javaHome, BIN_DIR, EXECUTABLE).toFile()));
 
         if (executables.size()==0) {
             Optional.ofNullable(getExecutableAuto()).ifPresent(___executable -> executables.add(() -> ___executable));
@@ -89,10 +83,6 @@ public final class KeytoolExecutor {
         }
 
         throw new KeytoolExecutableException();
-    }
-
-    private List<String> prepareCommand(File keytoolExecutable) {
-        return prepareCommand(keytoolExecutable, new ArrayList<>());
     }
 
     private List<String> getPowershellCommand() {
@@ -125,15 +115,20 @@ public final class KeytoolExecutor {
         return fullCommand;
     }
 
-    private List<String> prepareCommand(File keytoolExecutable, List<String> packageInfo) {
+    private List<String> prepareCommand(File keytoolExecutable) {
         var executable = keytoolExecutable.getAbsolutePath();
         var allArgs = new ArrayList<String>();
         var fullCommand = new ArrayList<String>();
 
         Optional.ofNullable(command).ifPresent(allArgs::add);
-        allArgs.addAll(packageInfo);
-        allArgs.addAll(args);
-        allArgs.addAll(zArgs);
+
+        if (args.size()>0) {
+            allArgs.addAll(args);
+        }
+
+        if (zArgs.size()>0) {
+            allArgs.addAll(zArgs);
+        }
 
         var commandToRun = new ArrayList<String>();
         commandToRun.add(executable);
@@ -182,6 +177,7 @@ public final class KeytoolExecutor {
         private boolean isNoop;
         private OSType osType;
         private File javaHome;
+        private boolean runningInAdminMode;
 
         private KeytoolExecutorBuilder() {
             args = new ArrayList<>();
@@ -202,7 +198,7 @@ public final class KeytoolExecutor {
             return this;
         }
 
-        public KeytoolExecutorBuilder addIsNoop(boolean isNoop) {
+        public KeytoolExecutorBuilder addNoop(boolean isNoop) {
             this.isNoop = isNoop;
             return this;
         }
@@ -222,8 +218,13 @@ public final class KeytoolExecutor {
             return this;
         }
 
-        public KeytoolExecutorBuilder addIsAdminMode(boolean isAdminMode) {
+        public KeytoolExecutorBuilder addAdminMode(boolean isAdminMode) {
             this.isAdminMode = isAdminMode;
+            return this;
+        }
+
+        public KeytoolExecutorBuilder addRunningInAdminMode(boolean runningInAdminMode) {
+            this.runningInAdminMode = runningInAdminMode;
             return this;
         }
     }

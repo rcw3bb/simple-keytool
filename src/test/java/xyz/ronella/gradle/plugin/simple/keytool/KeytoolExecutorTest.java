@@ -6,15 +6,13 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType;
 
-import java.io.File;
 import java.util.function.Supplier;
 
 public class KeytoolExecutorTest {
 
-    private Supplier<KeytoolExecutor.KeytoolExecutorBuilder> winExecutor = () -> KeytoolExecutor.getBuilder()
-            .addIsNoop(true)
-            .addOSType(OSType.Windows)
-            .addJavaHome(new File("C:\\Program Files\\Java\\jdk-17.0.2\\"));
+    private final Supplier<KeytoolExecutor.KeytoolExecutorBuilder> winExecutor = () -> KeytoolExecutor.getBuilder()
+            .addNoop(true)
+            .addOSType(OSType.Windows);
 
     @Test
     @EnabledOnOs({OS.WINDOWS})
@@ -23,7 +21,7 @@ public class KeytoolExecutorTest {
                 .addCommand("command")
                 .build();
 
-        assertEquals("C:\\Program Files\\Java\\jdk-17.0.2\\bin\\keytool.exe command", executor.execute());
+        assertTrue(executor.execute().endsWith("keytool.exe command"));
     }
 
     @Test
@@ -34,7 +32,7 @@ public class KeytoolExecutorTest {
                 .addArgs("arg1")
                 .build();
 
-        assertEquals("C:\\Program Files\\Java\\jdk-17.0.2\\bin\\keytool.exe command arg1", executor.execute());
+        assertTrue(executor.execute().endsWith("keytool.exe command arg1"));
     }
 
     @Test
@@ -45,7 +43,7 @@ public class KeytoolExecutorTest {
                 .addArgs("arg1", "arg2")
                 .build();
 
-        assertEquals("C:\\Program Files\\Java\\jdk-17.0.2\\bin\\keytool.exe command arg1 arg2", executor.execute());
+        assertTrue(executor.execute().endsWith("keytool.exe command arg1 arg2"));
     }
 
     @Test
@@ -57,7 +55,7 @@ public class KeytoolExecutorTest {
                 .addArgs("arg1", "arg2")
                 .build();
 
-        assertEquals("C:\\Program Files\\Java\\jdk-17.0.2\\bin\\keytool.exe command arg1 arg2 zarg1", executor.execute());
+        assertTrue(executor.execute().endsWith("keytool.exe command arg1 arg2 zarg1"));
     }
 
     @Test
@@ -69,7 +67,7 @@ public class KeytoolExecutorTest {
                 .addArgs("arg1", "arg2")
                 .build();
 
-        assertEquals("C:\\Program Files\\Java\\jdk-17.0.2\\bin\\keytool.exe command arg1 arg2 zarg1 zarg2", executor.execute());
+        assertTrue(executor.execute().endsWith("keytool.exe command arg1 arg2 zarg1 zarg2"));
     }
 
     @Test
@@ -78,12 +76,10 @@ public class KeytoolExecutorTest {
         var executor = winExecutor.get()
                 .addCommand("command")
                 .addArgs("arg1")
-                .addIsAdminMode(true)
+                .addAdminMode(true)
                 .build();
 
-        var expectation = "powershell.exe -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command \"Start-Process \"\"\"\"C:\\Program Files\\Java\\jdk-17.0.2\\bin\\keytool.exe\"\"\"\" -Wait -Verb runas -argumentlist \"\"\"\"command\"\"\"\",\"\"\"\"arg1\"\"\"\"\"";
-
-        assertEquals(expectation, executor.execute());
+        assertTrue(executor.execute().endsWith("keytool.exe\"\"\"\" -Wait -Verb runas -argumentlist \"\"\"\"command\"\"\"\",\"\"\"\"arg1\"\"\"\"\""));
     }
 
 }
