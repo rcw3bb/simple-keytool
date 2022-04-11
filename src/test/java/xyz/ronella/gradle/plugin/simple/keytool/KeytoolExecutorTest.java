@@ -78,8 +78,8 @@ public class KeytoolExecutorTest {
                 .addArgs("arg1")
                 .addAdminMode(true)
                 .build();
-
-        assertTrue(executor.execute().endsWith("keytool.exe\"\"\"\" -Wait -Verb runas -argumentlist \"\"\"\"command\"\"\"\",\"\"\"\"arg1\"\"\"\"\""));
+        var command = executor.execute();
+        assertTrue(command.endsWith("keytool.exe\"\"\"\" -Wait -WindowStyle Hidden -PassThru -Verb RunAs -argumentlist \"\"\"\"command\"\"\"\",\"\"\"\"arg1\"\"\"\").ExitCode\""));
     }
 
 }

@@ -1,5 +1,6 @@
 package xyz.ronella.gradle.plugin.simple.keytool;
 
+import xyz.ronella.gradle.plugin.simple.keytool.tool.CommandOutputFilter;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.CommandRunner;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType;
 
@@ -11,7 +12,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
+/**
+ * The main class that actual executed the keytool command.
+ *
+ * @author Ron Webb
+ * @since 1.0.0
+ */
 public final class KeytoolExecutor {
 
     public static final String BIN_DIR = "bin";
@@ -102,13 +110,17 @@ public final class KeytoolExecutor {
         return String.format("\"\"\"\"%s\"\"\"\"", text);
     }
 
+    private String quote(String text) {
+        return String.format("\"%s\"", text);
+    }
+
     private List<String> adminModeCommand(String executable, List<String> allArgs) {
         var fullCommand = getPowershellCommand();
 
         var sbArgs = new StringBuilder();
         allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(quadQuote(___arg)));
 
-        var sbActualCommand = String.format("\"Start-Process %s -Wait -Verb runas%s%s\"",
+        var sbActualCommand = String.format("\"(Start-Process %s -Wait -WindowStyle Hidden -PassThru -Verb RunAs%s%s).ExitCode\"",
                 quadQuote(executable), (sbArgs.length() == 0 ? "" : " -argumentlist "), sbArgs);
 
         fullCommand.add(sbActualCommand);
@@ -131,10 +143,13 @@ public final class KeytoolExecutor {
         }
 
         var commandToRun = new ArrayList<String>();
-        commandToRun.add(executable);
-        commandToRun.addAll(allArgs);
+        commandToRun.add(executable.contains(" ") ? quote(executable) : executable);
+        commandToRun.addAll(allArgs.stream()
+                .map(___arg -> ___arg.contains(" ") ? quote(___arg) : ___arg)
+                .collect(Collectors.toList())
+        );
 
-        System.out.println(String.join(" ", commandToRun));
+        System.out.println(CommandOutputFilter.filter(String.join(" ", commandToRun)));
 
         if (isAdminMode) {
             fullCommand.addAll(adminModeCommand(executable, allArgs));
@@ -157,7 +172,14 @@ public final class KeytoolExecutor {
                         System.err.println(___error);
                     }
                     else {
-                        System.out.println(___output);
+                        if (isAdminMode) {
+                            if (!"0".equals(___output)) {
+                                throw new KeytoolTaskExecutionException();
+                            }
+                        }
+                        else {
+                            System.out.println(___output);
+                        }
                     }
                 }, fullCommand.toArray(new String[]{}));
             }

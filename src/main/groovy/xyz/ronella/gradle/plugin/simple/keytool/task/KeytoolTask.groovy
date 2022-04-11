@@ -9,12 +9,19 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import xyz.ronella.gradle.plugin.simple.keytool.KeytoolExecutor
 import xyz.ronella.gradle.plugin.simple.keytool.SimpleKeytoolPluginExtension
+import xyz.ronella.gradle.plugin.simple.keytool.args.ArgumentManager
 import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType
 import xyz.ronella.gradle.plugin.simple.keytool.tool.RunAsChecker
 
+/**
+ * The main keytool task implementation that holds the default behaviour.
+ *
+ * @author Ron Webb
+ * @since 1.0.0
+ */
 abstract class KeytoolTask extends DefaultTask {
 
-    final SimpleKeytoolPluginExtension EXTENSION
+    final protected SimpleKeytoolPluginExtension EXTENSION
 
     protected Property<Boolean> isAdminMode
 
@@ -24,15 +31,34 @@ abstract class KeytoolTask extends DefaultTask {
 
     protected ListProperty<String> internalZArgs
 
+    /**
+     * Must hold the command to execute.
+     *
+     * @return The command to execute.
+     */
     @Optional @Input
     abstract Property<String> getCommand()
 
+    /**
+     * The arguments to be passed to the command.
+     *
+     * @return The arguments.
+     */
     @Optional @Input
     abstract ListProperty<String> getArgs()
 
+    /**
+     * The terminal arguments to be passed to the command.
+     * Theses arguments becomes the series of last argument of the command.
+     *
+     * @return The arguments.
+     */
     @Optional @Input
     abstract ListProperty<String> getZArgs()
 
+    /**
+     * Creates an instance of the KeytoolTask.
+     */
     KeytoolTask() {
         EXTENSION = project.extensions.simple_keytool
 
@@ -51,15 +77,17 @@ abstract class KeytoolTask extends DefaultTask {
         isAdminMode.convention(false)
     }
 
-    protected void writeln(String text) {
-        if (EXTENSION.verbose.get()) {
-            println(text)
-        }
-    }
-
     @Internal
     protected ListProperty<String> getAllArgs() {
-        def newArgs = args.get()
+
+        ArgumentManager.processArgs(this, internalArgs, EXTENSION)
+
+        def newArgs = new ArrayList<String>()
+        newArgs.addAll(internalArgs.get())
+        newArgs.addAll(args.get())
+        newArgs.addAll(internalZArgs.get())
+        newArgs.addAll(getZArgs().get())
+
         def allTheArgs = project.objects.listProperty(String.class)
         if ((command.getOrElse("").length()>0 || newArgs.size() > 0)) {
             allTheArgs.addAll(newArgs)
@@ -71,19 +99,20 @@ abstract class KeytoolTask extends DefaultTask {
         return allTheArgs
     }
 
+    /**
+     * The method that holds the logic of executing the command.
+     *
+     * @return The actual command to be executed.
+     */
     @TaskAction
     String executeCommand() {
-
         var executor = KeytoolExecutor.getBuilder()
                 .addNoop(EXTENSION.noop.getOrElse(false))
                 .addOSType(OSType.identify())
                 .addJavaHome(EXTENSION.javaHome.getOrNull())
                 .addAdminMode(isAdminMode.get())
                 .addCommand(internalCommand.isPresent() ? internalCommand.get() : command.getOrNull())
-                .addArgs(internalArgs.get().toArray((String[])[]))
                 .addArgs(allArgs.get().toArray((String[])[]))
-                .addZArgs(internalZArgs.get().toArray((String[])[]))
-                .addZArgs(getZArgs().get().toArray((String[])[]))
                 .addRunningInAdminMode(RunAsChecker.isElevatedMode())
                 .build()
 

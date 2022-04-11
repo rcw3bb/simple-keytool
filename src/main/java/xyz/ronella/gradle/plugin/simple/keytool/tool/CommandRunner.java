@@ -7,10 +7,22 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+/**
+ * The class that do the actual running of the command.
+ *
+ * @author Ron Webb
+ * @since 1.0.0
+ */
 public final class CommandRunner {
 
     private CommandRunner() {}
 
+    /**
+     * Run the command received.
+     *
+     * @param outputSet Holds the logic for the output and error streams.
+     * @param command The command received.
+     */
     public static void runCommand(BiConsumer<String, String> outputSet, String ... command) {
         try {
             Process process = new ProcessBuilder(command).start();
