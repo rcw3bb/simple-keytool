@@ -9,9 +9,18 @@ package xyz.ronella.gradle.plugin.simple.keytool;
 public class KeytoolTaskExecutionException extends KeytoolException {
 
     /**
-     * Creates an instance of KeytoolTaskExecutionException.
+     * Creates an instance of KeytoolTaskExecutionException with default message.
      */
     public KeytoolTaskExecutionException() {
-        super("Keytool task execution failed. Try it manually.");
+        super("Keytool task execution failed. Try it manually in administration mode.");
+    }
+
+    /**
+     * Creates an instance of KeytoolTaskExecutionException.
+     *
+     * @param message Accepts a custom message.
+     */
+    public KeytoolTaskExecutionException(String message) {
+        super(message);
     }
 }

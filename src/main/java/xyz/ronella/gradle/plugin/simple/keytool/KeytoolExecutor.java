@@ -54,7 +54,7 @@ public final class KeytoolExecutor {
 
     private File getExecutableAuto() {
         var sbFQFN = new StringBuilder();
-        CommandRunner.runCommand((___output, ___error) -> sbFQFN.append(___output),"where", EXECUTABLE);
+        CommandRunner.runCommand((___exitCode, ___output) -> sbFQFN.append(___output.get(CommandRunner.Output.STD)),"where", EXECUTABLE);
 
         var fqfn = sbFQFN.toString();
 
@@ -186,22 +186,28 @@ public final class KeytoolExecutor {
             sbCommand.append(String.join(" ", fullCommand).trim());
 
             if (!isNoop) {
-                CommandRunner.runCommand((___output, ___error)-> {
-                    if (___error.length()>0) {
-                        System.err.println(___error);
+                CommandRunner.runCommand((___exitCode, ___output)-> {
+                    var errorText = ___output.get(CommandRunner.Output.ERR);
+                    var outputText = ___output.get(CommandRunner.Output.STD);
+                    if (errorText.length()>0) {
+                        System.err.println(errorText);
                         if (isAdminMode) {
                             throw new KeytoolTaskExecutionException();
                         }
                     }
                     else {
                         if (isAdminMode) {
-                            if (!"0".equals(___output)) {
+                            if (!"0".equals(outputText)) {
                                 throw new KeytoolTaskExecutionException();
                             }
                         }
                         else {
-                            System.out.println(___output);
+                            System.out.println(outputText);
                         }
+                    }
+
+                    if (___exitCode!=0) {
+                        throw new KeytoolTaskExecutionException("Error running the task.");
                     }
                 }, fullCommand.toArray(new String[]{}));
             }

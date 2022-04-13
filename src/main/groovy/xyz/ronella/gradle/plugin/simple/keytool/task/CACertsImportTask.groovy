@@ -21,7 +21,7 @@ abstract class CACertsImportTask extends KeytoolTask
      */
     CACertsImportTask() {
         super()
-        description = 'Convenience task to import certificate to cacert.'
+        description = 'Convenience task to import a certificate to cacert.'
         internalCommand.convention('-importcert')
         internalArgs.set(['-cacerts'])
         isAdminMode.convention(true)

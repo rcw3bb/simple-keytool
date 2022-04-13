@@ -17,6 +17,7 @@ final class ArgumentManager {
     static {
         addVerboseArg()
         addAliasArg()
+        addAliasRequiredArg()
         addKeyStoreArg()
         addKeyPassArg()
         addStoreTypeArg()
@@ -35,6 +36,16 @@ final class ArgumentManager {
     private static def addAliasArg() {
         ARGUMENTS.add({___task, ___args, ___ext ->
             processArg({___task instanceof IAliasArg},{___task as IAliasArg},{
+                if (it.alias.isPresent()) {
+                    ___args.addAll('-alias', "${it.alias.get()}")
+                }
+            })
+        })
+    }
+
+    private static def addAliasRequiredArg() {
+        ARGUMENTS.add({___task, ___args, ___ext ->
+            processArg({___task instanceof IAliasRequiredArg},{___task as IAliasRequiredArg},{
                 if (it.alias.isPresent()) {
                     ___args.addAll('-alias', "${it.alias.get()}")
                 }
