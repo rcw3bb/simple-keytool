@@ -9,7 +9,7 @@ import xyz.ronella.gradle.plugin.simple.keytool.args.*
  * @since 1.0.0
  */
 abstract class CACertsListTask extends KeytoolTask
-        implements IAliasArg, IStorePassArg, IVerboseArg {
+        implements IAliasArg, IStorePassArg, IVerboseArg, IStoreTypeArg {
 
     /**
      * Creates an instance of CACertsListTask.

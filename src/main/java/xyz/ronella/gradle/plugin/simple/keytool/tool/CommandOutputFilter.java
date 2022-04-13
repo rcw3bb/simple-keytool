@@ -1,5 +1,9 @@
 package xyz.ronella.gradle.plugin.simple.keytool.tool;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -12,24 +16,29 @@ public final class CommandOutputFilter {
 
     private CommandOutputFilter() {}
 
+    private final static List<String> REGISTRY_FILTERS;
+
+    static {
+        REGISTRY_FILTERS = new ArrayList<>();
+        REGISTRY_FILTERS.add("-storepass");
+        REGISTRY_FILTERS.add("-keypass");
+    }
+
     /**
      * Holds the logic that filters the output of the command.
      *
-     * @param command The command received.
+     * @param args The arguments to build the command from.
      * @return The filtered command output.
      */
-    public static String filter(String command) {
-        var pattern = ".*-storepass\\s*([^\\s]*).*";
+    public static String filter(final List<String> args) {
 
-        var compiledPattern = Pattern.compile(pattern);
-        var matcher = compiledPattern.matcher(command);
-
-        if (matcher.find()) {
-            var secret = matcher.group(1);
-            return matcher.group(0).replace(secret, "***");
+        for (var idx=0; idx<args.size(); idx++) {
+            if (REGISTRY_FILTERS.contains(args.get(idx).toLowerCase())) {
+                args.set(idx+1, "***");
+            }
         }
 
-        return command;
+        return String.join(" ", args);
     }
 
 }

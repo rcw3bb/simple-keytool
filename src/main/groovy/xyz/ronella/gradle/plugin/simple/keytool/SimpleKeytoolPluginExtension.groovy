@@ -40,6 +40,13 @@ abstract class SimpleKeytoolPluginExtension {
     abstract Property<String> getStorePass()
 
     /**
+     * Output the actual code executed.
+     *
+     * @return The actual code executed when true.
+     */
+    abstract Property<Boolean> getShowExecCode()
+
+    /**
      * Create an instance of SimpleKeytoolPluginExtension.
      */
     SimpleKeytoolPluginExtension() {

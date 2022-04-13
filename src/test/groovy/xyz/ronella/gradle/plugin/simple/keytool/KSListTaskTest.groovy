@@ -51,4 +51,19 @@ class KSListTaskTest {
         assertTrue(command.contains('keystore -storepass'))
     }
 
+    @Test
+    void withStoreTypeParam() {
+        project.tasks.ksList.storeType = 'storeType'
+        var command = project.tasks.ksList.executeCommand()
+        assertTrue(command.contains('-storetype storeType'))
+    }
+
+    @Test
+    void withKeyPassParam() {
+        project.tasks.ksList.keyPass = 'keyPass'
+        var command = project.tasks.ksList.executeCommand()
+        assertTrue(command.contains('-keypass'))
+    }
+
+
 }

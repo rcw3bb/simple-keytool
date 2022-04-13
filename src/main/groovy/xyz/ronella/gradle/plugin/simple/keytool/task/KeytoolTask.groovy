@@ -116,6 +116,12 @@ abstract class KeytoolTask extends DefaultTask {
                 .addRunningInAdminMode(RunAsChecker.isElevatedMode())
                 .build()
 
-        executor.execute()
+        var command = executor.execute()
+        if (EXTENSION.showExecCode.getOrElse(false)) {
+            println "Command executed: ${command}"
+        }
+
+        return command
+
     }
 }

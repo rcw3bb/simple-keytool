@@ -5,24 +5,29 @@ import xyz.ronella.gradle.plugin.simple.keytool.tool.CommandRunner;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * The main class that actual executed the keytool command.
+ * The main class that actually execute the keytool command.
  *
  * @author Ron Webb
  * @since 1.0.0
  */
 public final class KeytoolExecutor {
 
+    /**
+     * The default binary directory.
+     */
     public static final String BIN_DIR = "bin";
+
+    /**
+     * The keytool executable file.
+     */
     public static final String EXECUTABLE = "keytool.exe";
 
     private final List<Supplier<File>> executables;
@@ -101,13 +106,15 @@ public final class KeytoolExecutor {
         shellCommand.add("None");
         shellCommand.add("-ExecutionPolicy") ;
         shellCommand.add("Bypass");
-        shellCommand.add("-Command");
+        shellCommand.add("-EncodedCommand");
 
         return new ArrayList<>(shellCommand);
     }
 
-    private String quadQuote(String text) {
-        return String.format("\"\"\"\"%s\"\"\"\"", text);
+    private List<String> getScriptLines() {
+        var script = new ArrayList<String>();
+        script.add("$ProgressPreference = 'SilentlyContinue'");
+        return new ArrayList<>(script);
     }
 
     private String quote(String text) {
@@ -118,12 +125,19 @@ public final class KeytoolExecutor {
         var fullCommand = getPowershellCommand();
 
         var sbArgs = new StringBuilder();
-        allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(quadQuote(___arg)));
+        allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(quote(___arg)));
 
-        var sbActualCommand = String.format("\"(Start-Process %s -Wait -WindowStyle Hidden -PassThru -Verb RunAs%s%s).ExitCode\"",
-                quadQuote(executable), (sbArgs.length() == 0 ? "" : " -argumentlist "), sbArgs);
+        var sbActualCommand = String.format("(Start-Process %s -Wait -WindowStyle Hidden -PassThru -Verb RunAs%s%s).ExitCode",
+                quote(executable), (sbArgs.length() == 0 ? "" : " -argumentlist "), sbArgs);
 
-        fullCommand.add(sbActualCommand);
+        var command = String.join(" ", sbActualCommand);
+        var scriptLines = getScriptLines();
+        scriptLines.add(command);
+        var script = String.join("\n", scriptLines);
+
+        var encodedCommand = Base64.getEncoder().encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
+
+        fullCommand.add(encodedCommand);
         return fullCommand;
     }
 
@@ -149,7 +163,7 @@ public final class KeytoolExecutor {
                 .collect(Collectors.toList())
         );
 
-        System.out.println(CommandOutputFilter.filter(String.join(" ", commandToRun)));
+        System.out.println(CommandOutputFilter.filter(commandToRun));
 
         if (isAdminMode) {
             fullCommand.addAll(adminModeCommand(executable, allArgs));
@@ -160,6 +174,11 @@ public final class KeytoolExecutor {
         return fullCommand;
     }
 
+    /**
+     * Do the actual execution of the command.
+     *
+     * @return The command executed.
+     */
     public String execute() {
         var sbCommand = new StringBuilder();
         executable().ifPresent(___executable -> {
@@ -170,6 +189,9 @@ public final class KeytoolExecutor {
                 CommandRunner.runCommand((___output, ___error)-> {
                     if (___error.length()>0) {
                         System.err.println(___error);
+                        if (isAdminMode) {
+                            throw new KeytoolTaskExecutionException();
+                        }
                     }
                     else {
                         if (isAdminMode) {
@@ -187,10 +209,18 @@ public final class KeytoolExecutor {
         return sbCommand.toString();
     }
 
+    /**
+     * Creates the builder class of the KeytoolExecutor.
+     *
+     * @return An instance of KeytoolExecutorBuilder.
+     */
     public static KeytoolExecutorBuilder getBuilder() {
         return new KeytoolExecutorBuilder();
     }
 
+    /**
+     * The only class that create an instance of KeytoolExecutor.
+     */
     public final static class KeytoolExecutorBuilder {
         private final List<String> args;
         private final List<String> zArgs;
@@ -206,45 +236,99 @@ public final class KeytoolExecutor {
             zArgs = new ArrayList<>();
         }
 
+        /**
+         * Creates an instance of KeytoolExecutor.
+         *
+         * @return An instance of KeytoolExecutor.
+         */
         public KeytoolExecutor build() {
             return new KeytoolExecutor(this);
         }
 
+        /**
+         * Add the java installation directory.
+         *
+         * @param javaHome The valid java installation directory.
+         * @return An instance of KeytoolExecutorBuilder
+         */
         public KeytoolExecutorBuilder addJavaHome(File javaHome) {
             this.javaHome = javaHome;
             return this;
         }
 
+        /**
+         * Add of the value of the OSType.
+         *
+         * @param osType An instance of OSType.
+         * @return An instance of KeytoolExecutorBuilder
+         */
         public KeytoolExecutorBuilder addOSType(OSType osType) {
             this.osType = osType;
             return this;
         }
 
+        /**
+         * Instruct the executor not actually execute the command but just display it.
+         *
+         * @param isNoop Pass in true not execute the command.
+         * @return An instance of KeytoolExecutorBuilder
+         */
         public KeytoolExecutorBuilder addNoop(boolean isNoop) {
             this.isNoop = isNoop;
             return this;
         }
 
+        /**
+         * Add the command to run.
+         *
+         * @param command The command to run.
+         * @return An instance of KeytoolExecutorBuilder
+         */
         public KeytoolExecutorBuilder addCommand(String command) {
             this.command = command;
             return this;
         }
 
+        /**
+         * Add the arguments for the command.
+         *
+         * @param args The arguments for the command.
+         * @return An instance of KeytoolExecutorBuilder
+         */
         public KeytoolExecutorBuilder addArgs(String ... args) {
             this.args.addAll(Arrays.asList(args));
             return this;
         }
 
+        /**
+         * Add a terminal arguments that are added as the last arguments for the command.
+         *
+         * @param zArgs The terminal arguments.
+         * @return An instance of KeytoolExecutorBuilder
+         */
         public KeytoolExecutorBuilder addZArgs(String ... zArgs) {
             this.zArgs.addAll(Arrays.asList(zArgs));
             return this;
         }
 
+        /**
+         * Indicates that the command will be run in administration mode if it is
+         * not running yet in administration mode.
+         *
+         * @param isAdminMode Set to true to run the command in administration mode.
+         * @return An instance of KeytoolExecutorBuilder
+         */
         public KeytoolExecutorBuilder addAdminMode(boolean isAdminMode) {
             this.isAdminMode = isAdminMode;
             return this;
         }
 
+        /**
+         * Indicates that gradle is already running in administration mode.
+         *
+         * @param runningInAdminMode Set to true it the task is already running in administration mode.
+         * @return An instance of KeytoolExecutorBuilder
+         */
         public KeytoolExecutorBuilder addRunningInAdminMode(boolean runningInAdminMode) {
             this.runningInAdminMode = runningInAdminMode;
             return this;

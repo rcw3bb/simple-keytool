@@ -18,5 +18,6 @@ class SimpleKeytoolPlugin implements Plugin<Project> {
         project.task('keytoolTask', type: KeytoolTask)
         project.task('cacertsList', type: CACertsListTask)
         project.task('ksList', type: KSListTask)
+        project.task('cacertsImport', type: CACertsImportTask)
     }
 }

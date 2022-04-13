@@ -1,9 +1,6 @@
 package xyz.ronella.gradle.plugin.simple.keytool.task
 
-import xyz.ronella.gradle.plugin.simple.keytool.args.IAliasArg
-import xyz.ronella.gradle.plugin.simple.keytool.args.IKeyStoreArg
-import xyz.ronella.gradle.plugin.simple.keytool.args.IStorePassArg
-import xyz.ronella.gradle.plugin.simple.keytool.args.IVerboseArg
+import xyz.ronella.gradle.plugin.simple.keytool.args.*
 
 /**
  * The task for listing the content of the keystore.
@@ -12,7 +9,8 @@ import xyz.ronella.gradle.plugin.simple.keytool.args.IVerboseArg
  * @since 1.0.0
  */
 abstract class KSListTask extends KeytoolTask
-        implements IAliasArg, IStorePassArg, IVerboseArg, IKeyStoreArg {
+        implements IAliasArg, IStorePassArg, IVerboseArg, IKeyStoreArg, IStoreTypeArg,
+                IKeyPassArg {
 
     /**
      * Creates an instance of KSListTask.

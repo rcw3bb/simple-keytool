@@ -18,7 +18,10 @@ final class ArgumentManager {
         addVerboseArg()
         addAliasArg()
         addKeyStoreArg()
+        addKeyPassArg()
+        addStoreTypeArg()
         addStorePassArg()
+        addFileArg()
     }
 
     private ArgumentManager() {}
@@ -34,6 +37,26 @@ final class ArgumentManager {
             processArg({___task instanceof IAliasArg},{___task as IAliasArg},{
                 if (it.alias.isPresent()) {
                     ___args.addAll('-alias', "${it.alias.get()}")
+                }
+            })
+        })
+    }
+
+    private static def addKeyPassArg() {
+        ARGUMENTS.add({___task, ___args, ___ext ->
+            processArg({___task instanceof IKeyPassArg},{___task as IKeyPassArg},{
+                if (it.keyPass.isPresent()) {
+                    ___args.addAll('-keypass', "${it.keyPass.get()}")
+                }
+            })
+        })
+    }
+
+    private static def addStoreTypeArg() {
+        ARGUMENTS.add({___task, ___args, ___ext ->
+            processArg({___task instanceof IStoreTypeArg},{___task as IStoreTypeArg},{
+                if (it.storeType.isPresent()) {
+                    ___args.addAll('-storetype', "${it.storeType.get()}")
                 }
             })
         })
@@ -62,6 +85,16 @@ final class ArgumentManager {
             processArg({ ___task instanceof IKeyStoreArg}, { ___task as IKeyStoreArg }, {
                 if (it.keyStore.isPresent()) {
                     ___args.addAll('-keystore', "${it.keyStore.getAsFile().get().absolutePath}")
+                }
+            })
+        })
+    }
+
+    private static def addFileArg() {
+        ARGUMENTS.add({___task, ___args, ___ext ->
+            processArg({ ___task instanceof IFileArg}, { ___task as IFileArg }, {
+                if (it.file.isPresent()) {
+                    ___args.addAll('-file', "${it.file.getAsFile().get().absolutePath}")
                 }
             })
         })

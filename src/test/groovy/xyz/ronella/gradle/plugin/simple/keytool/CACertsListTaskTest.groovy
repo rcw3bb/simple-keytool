@@ -43,4 +43,10 @@ class CACertsListTaskTest {
         assertTrue(command.contains('keytool.exe -list -cacerts -alias alias -storepass'))
     }
 
+    @Test
+    void withStoreTypeParam() {
+        project.tasks.cacertsList.storeType='storeType'
+        var command = project.tasks.cacertsList.executeCommand()
+        assertTrue(command.contains('keytool.exe -list -cacerts -storetype storeType -storepass'))
+    }
 }

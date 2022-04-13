@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType;
+import xyz.ronella.gradle.plugin.simple.keytool.tool.PSCommandDecoder;
 
 import java.util.function.Supplier;
 
@@ -78,8 +79,9 @@ public class KeytoolExecutorTest {
                 .addArgs("arg1")
                 .addAdminMode(true)
                 .build();
-        var command = executor.execute();
-        assertTrue(command.endsWith("keytool.exe\"\"\"\" -Wait -WindowStyle Hidden -PassThru -Verb RunAs -argumentlist \"\"\"\"command\"\"\"\",\"\"\"\"arg1\"\"\"\").ExitCode\""));
+        var script = executor.execute();
+        var command = PSCommandDecoder.decode(script);
+        assertTrue(command.contains("\"command\",\"arg1\")"));
     }
 
 }
