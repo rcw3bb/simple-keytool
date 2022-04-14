@@ -15,10 +15,12 @@ class SimpleKeytoolPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.extensions.create('simple_keytool', SimpleKeytoolPluginExtension)
-        project.task('keytoolTask', type: KeytoolTask)
-        project.task('cacertsList', type: CACertsListTask)
-        project.task('ksList', type: KSListTask)
-        project.task('cacertsImport', type: CACertsImportTask)
         project.task('cacertsDelete', type: CACertsDeleteTask)
+        project.task('cacertsImport', type: CACertsImportTask)
+        project.task('cacertsList', type: CACertsListTask)
+        project.task('keytoolTask', type: KeytoolTask)
+        project.task('ksDelete', type: KSDeleteTask)
+        project.task('ksImport', type: KSImportTask)
+        project.task('ksList', type: KSListTask)
     }
 }

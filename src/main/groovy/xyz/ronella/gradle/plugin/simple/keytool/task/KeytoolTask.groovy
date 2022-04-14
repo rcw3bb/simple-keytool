@@ -40,6 +40,15 @@ abstract class KeytoolTask extends DefaultTask {
     abstract Property<String> getCommand()
 
     /**
+     * Must hold the target java home.
+     *
+     * @return The target java home.
+     */
+    @Optional @Input
+    abstract Property<File> getJavaHome()
+
+
+    /**
      * The arguments to be passed to the command.
      *
      * @return The arguments.
@@ -109,7 +118,7 @@ abstract class KeytoolTask extends DefaultTask {
         var executor = KeytoolExecutor.getBuilder()
                 .addNoop(EXTENSION.noop.getOrElse(false))
                 .addOSType(OSType.identify())
-                .addJavaHome(EXTENSION.javaHome.getOrNull())
+                .addJavaHome(javaHome.getOrElse(EXTENSION.javaHome.getOrNull()))
                 .addAdminMode(isAdminMode.get())
                 .addCommand(internalCommand.isPresent() ? internalCommand.get() : command.getOrNull())
                 .addArgs(allArgs.get().toArray((String[])[]))

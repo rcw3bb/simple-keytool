@@ -117,6 +117,10 @@ public final class KeytoolExecutor {
         return new ArrayList<>(script);
     }
 
+    private String tripleQuote(String text) {
+        return String.format("\"\"\"%s\"\"\"", text);
+    }
+
     private String quote(String text) {
         return String.format("\"%s\"", text);
     }
@@ -125,7 +129,7 @@ public final class KeytoolExecutor {
         var fullCommand = getPowershellCommand();
 
         var sbArgs = new StringBuilder();
-        allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(quote(___arg)));
+        allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
 
         var sbActualCommand = String.format("(Start-Process %s -Wait -WindowStyle Hidden -PassThru -Verb RunAs%s%s).ExitCode",
                 quote(executable), (sbArgs.length() == 0 ? "" : " -argumentlist "), sbArgs);
