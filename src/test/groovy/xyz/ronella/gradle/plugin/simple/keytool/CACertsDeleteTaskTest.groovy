@@ -28,7 +28,7 @@ class CACertsDeleteTaskTest {
     void noCommandParam() {
         var script = project.tasks.cacertsDelete.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-delete","-cacerts","-storepass"'))
+        assertTrue(command.contains('"""-delete""","""-cacerts""","""-storepass""'))
     }
 
     @Test
@@ -36,7 +36,7 @@ class CACertsDeleteTaskTest {
         project.tasks.cacertsDelete.verbose=true
         var script = project.tasks.cacertsDelete.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-delete","-cacerts","-v","-storepass"'))
+        assertTrue(command.contains('"""-delete""","""-cacerts""","""-v""","""-storepass"""'))
     }
 
     @Test
@@ -44,7 +44,7 @@ class CACertsDeleteTaskTest {
         project.tasks.cacertsDelete.alias='alias'
         var script = project.tasks.cacertsDelete.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-delete","-cacerts","-alias","alias","-storepass"'))
+        assertTrue(command.contains('"""-delete""","""-cacerts""","""-alias""","""alias""","""-storepass"""'))
     }
 
     @Test
@@ -52,7 +52,7 @@ class CACertsDeleteTaskTest {
         project.tasks.cacertsDelete.storeType='storeType'
         var script = project.tasks.cacertsDelete.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-delete","-cacerts","-storetype","storeType","-storepass"'))
+        assertTrue(command.contains('"""-delete""","""-cacerts""","""-storetype""","""storeType""","""-storepass"""'))
     }
 
 }

@@ -28,7 +28,7 @@ class KSDeleteTaskTest {
     void noCommandParam() {
         var script = project.tasks.ksDelete.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-delete","-storepass"'))
+        assertTrue(command.contains('"""-delete""","""-storepass"""'))
     }
 
     @Test
@@ -36,7 +36,7 @@ class KSDeleteTaskTest {
         project.tasks.ksDelete.verbose=true
         var script = project.tasks.ksDelete.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-delete","-v","-storepass"'))
+        assertTrue(command.contains('"""-delete""","""-v""","""-storepass"""'))
     }
 
     @Test
@@ -44,7 +44,7 @@ class KSDeleteTaskTest {
         project.tasks.ksDelete.alias='alias'
         var script = project.tasks.ksDelete.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-delete","-alias","alias","-storepass"'))
+        assertTrue(command.contains('"""-delete""","""-alias""","""alias""","""-storepass"""'))
     }
 
     @Test
@@ -52,7 +52,7 @@ class KSDeleteTaskTest {
         project.tasks.ksDelete.storeType='storeType'
         var script = project.tasks.ksDelete.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-delete","-storetype","storeType","-storepass"'))
+        assertTrue(command.contains('"""-delete""","""-storetype""","""storeType""","""-storepass"""'))
     }
 
     @Test

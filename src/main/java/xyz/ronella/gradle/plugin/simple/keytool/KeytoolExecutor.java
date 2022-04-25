@@ -114,6 +114,7 @@ public final class KeytoolExecutor {
     private List<String> getScriptLines() {
         var script = new ArrayList<String>();
         script.add("$ProgressPreference = 'SilentlyContinue'");
+        script.add("$ErrorActionPreference = 'SilentlyContinue'");
         return new ArrayList<>(script);
     }
 
@@ -131,7 +132,7 @@ public final class KeytoolExecutor {
         var sbArgs = new StringBuilder();
         allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
 
-        var sbActualCommand = String.format("(Start-Process %s -Wait -WindowStyle Hidden -PassThru -Verb RunAs%s%s).ExitCode",
+        var sbActualCommand = String.format("Exit (Start-Process %s -Wait -WindowStyle Hidden -PassThru -Verb RunAs%s%s).ExitCode",
                 quote(executable), (sbArgs.length() == 0 ? "" : " -argumentlist "), sbArgs);
 
         var command = String.join(" ", sbActualCommand);
@@ -195,23 +196,13 @@ public final class KeytoolExecutor {
                     var outputText = ___output.get(CommandRunner.Output.STD);
                     if (errorText.length()>0) {
                         System.err.println(errorText);
-                        if (isAdminMode) {
-                            throw new KeytoolTaskExecutionException();
-                        }
                     }
                     else {
-                        if (isAdminMode) {
-                            if (!"0".equals(outputText)) {
-                                throw new KeytoolTaskExecutionException();
-                            }
-                        }
-                        else {
-                            System.out.println(outputText);
-                        }
+                        System.out.println(outputText);
                     }
 
                     if (___exitCode!=0) {
-                        throw new KeytoolTaskExecutionException("Error running the task.");
+                        throw new KeytoolTaskExecutionException("Error performing the task.");
                     }
                 }, fullCommand.toArray(new String[]{}));
             }

@@ -81,7 +81,7 @@ public class KeytoolExecutorTest {
                 .build();
         var script = executor.execute();
         var command = PSCommandDecoder.decode(script);
-        assertTrue(command.contains("\"command\",\"arg1\")"));
+        assertTrue(command.contains("\"\"\"command\"\"\",\"\"\"arg1\"\"\")"));
     }
 
 }

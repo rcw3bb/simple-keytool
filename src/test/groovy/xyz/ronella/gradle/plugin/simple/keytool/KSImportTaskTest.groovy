@@ -28,7 +28,7 @@ class KSImportTaskTest {
     void noCommandParam() {
         var script = project.tasks.ksImport.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-importcert","-storepass"'))
+        assertTrue(command.contains('"""-importcert""","""-storepass"""'))
     }
 
     @Test
@@ -36,7 +36,7 @@ class KSImportTaskTest {
         project.tasks.ksImport.verbose=true
         var script = project.tasks.ksImport.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-importcert","-v","-storepass"'))
+        assertTrue(command.contains('"""-importcert""","""-v""","""-storepass"""'))
     }
 
     @Test
@@ -44,7 +44,7 @@ class KSImportTaskTest {
         project.tasks.ksImport.alias='alias'
         var script = project.tasks.ksImport.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-importcert","-alias","alias","-storepass"'))
+        assertTrue(command.contains('"""-importcert""","""-alias""","""alias""","""-storepass"""'))
     }
 
     @Test
@@ -52,7 +52,7 @@ class KSImportTaskTest {
         project.tasks.ksImport.storeType='storeType'
         var script = project.tasks.ksImport.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"-importcert","-storetype","storeType","-storepass"'))
+        assertTrue(command.contains('"""-importcert""","""-storetype""","""storeType""","""-storepass"""'))
     }
 
     @Test
