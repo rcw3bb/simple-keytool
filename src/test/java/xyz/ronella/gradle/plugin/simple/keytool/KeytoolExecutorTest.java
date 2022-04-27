@@ -7,6 +7,7 @@ import org.junit.jupiter.api.condition.OS;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.PSCommandDecoder;
 
+import java.nio.file.Paths;
 import java.util.function.Supplier;
 
 public class KeytoolExecutorTest {
@@ -82,6 +83,48 @@ public class KeytoolExecutorTest {
         var script = executor.execute();
         var command = PSCommandDecoder.decode(script);
         assertTrue(command.contains("\"\"\"command\"\"\",\"\"\"arg1\"\"\")"));
+    }
+
+    @Test
+    @EnabledOnOs({OS.WINDOWS})
+    public void testScriptCommandGeneratedAdminMode() {
+        var executor = winExecutor.get()
+                .addCommand("-importcert")
+                .addArgs("arg1")
+                .addAdminMode(true)
+                .addScriptMode(true)
+                .addDirectory(Paths.get(".",  "src", "test", "resources", "certs").toFile())
+                .build();
+        var script = executor.execute();
+        var command = PSCommandDecoder.decode(script);
+        System.out.printf("Command: %s%n", command);
+        assertTrue(command.contains("\"\"-Command\"\""));
+    }
+
+    @Test
+    @EnabledOnOs({OS.WINDOWS})
+    public void testScriptCommandGeneratedNonAdminMode() {
+        var executor = winExecutor.get()
+                .addCommand("-importcert")
+                .addArgs("arg1")
+                .addScriptMode(true)
+                .addDirectory(Paths.get(".",  "src", "test", "resources", "certs").toFile())
+                .build();
+        var script = executor.execute();
+        System.out.printf("Script: %s%n", script);
+        assertTrue(script.contains("keytool.exe") && script.contains("cert1.cer") && script.contains("cert2.cer"));
+    }
+
+    @Test
+    @EnabledOnOs({OS.WINDOWS})
+    public void testNoScriptCommandGenerated() {
+        var executor = winExecutor.get()
+                .addCommand("-importcert")
+                .addArgs("arg1")
+                .addAdminMode(true)
+                .addScriptMode(true)
+                .build();
+        assertThrows(KeytoolNoCommandException.class, executor::execute);
     }
 
 }

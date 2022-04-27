@@ -5,7 +5,9 @@ import xyz.ronella.gradle.plugin.simple.keytool.tool.CommandRunner;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
@@ -38,6 +40,8 @@ public final class KeytoolExecutor {
     private final List<String> args;
     private final List<String> zArgs;
     private final boolean isAdminMode;
+    private final boolean isScriptMode;
+    private final File dir;
 
     private KeytoolExecutor(KeytoolExecutorBuilder builder) {
         executables = new ArrayList<>();
@@ -47,6 +51,8 @@ public final class KeytoolExecutor {
         command = builder.command;
         args = builder.args;
         zArgs = builder.zArgs;
+        dir = builder.dir;
+        isScriptMode = builder.isScriptMode;
         isAdminMode = !builder.runningInAdminMode && builder.isAdminMode;
 
         prepareExecutables();
@@ -98,14 +104,21 @@ public final class KeytoolExecutor {
         throw new KeytoolExecutableException();
     }
 
+    private List<String> getPowershellArgs() {
+        var shellArgs = new ArrayList<String>();
+        shellArgs.add("-NoProfile");
+        shellArgs.add("-InputFormat");
+        shellArgs.add("None");
+        shellArgs.add("-ExecutionPolicy");
+        shellArgs.add("Bypass");
+
+        return new ArrayList<>(shellArgs);
+    }
+
     private List<String> getPowershellCommand() {
         var shellCommand = new ArrayList<String>();
         shellCommand.add("powershell.exe");
-        shellCommand.add("-NoProfile");
-        shellCommand.add("-InputFormat");
-        shellCommand.add("None");
-        shellCommand.add("-ExecutionPolicy") ;
-        shellCommand.add("Bypass");
+        shellCommand.addAll(getPowershellArgs());
         shellCommand.add("-EncodedCommand");
 
         return new ArrayList<>(shellCommand);
@@ -114,7 +127,6 @@ public final class KeytoolExecutor {
     private List<String> getScriptLines() {
         var script = new ArrayList<String>();
         script.add("$ProgressPreference = 'SilentlyContinue'");
-        script.add("$ErrorActionPreference = 'SilentlyContinue'");
         return new ArrayList<>(script);
     }
 
@@ -126,18 +138,86 @@ public final class KeytoolExecutor {
         return String.format("\"%s\"", text);
     }
 
+    private String singleQuote(String text) {
+        return String.format("'%s'", text);
+    }
+
+    private List<String> prepareScript(String executable, List<String> allArgs) {
+        var sbArgs = new StringBuilder();
+        getPowershellArgs().forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
+
+        var scriptCommands = new ArrayList<String>();
+        var ktCommand = allArgs.stream().findFirst();
+
+        if (null!=dir && dir.exists()) {
+            try (var entries = Files.list(dir.toPath())) {
+                entries.forEach(___path -> {
+                    var filename = ___path.toFile().getName();
+                    var scriptCommand = new ArrayList<String>();
+                    var commands = new ArrayList<String>();
+
+                    if (isAdminMode) {
+                        scriptCommand.add("&");
+                    }
+                    commands.add(executable);
+                    commands.addAll(allArgs);
+
+                    commands.add("-alias");
+                    commands.add(String.format("%s [sk]", filename));
+
+                    if ("-importcert".equalsIgnoreCase(ktCommand.orElse(""))) {
+                        commands.add("-file");
+                        var certFile = ___path.toFile().getAbsolutePath();
+                        commands.add(certFile);
+                    }
+
+                    scriptCommand.addAll(commands.stream().map(___command -> isAdminMode ? singleQuote(___command) : quote(___command)).collect(Collectors.toList()));
+                    scriptCommands.add(String.join(" ", scriptCommand));
+                });
+
+            } catch (IOException e) {
+                throw new KeytoolException(e.getMessage());
+            }
+        }
+
+        if (scriptCommands.size()>0) {
+            sbArgs.append(",").append(tripleQuote("-Command"));
+            sbArgs.append(",").append(String.format("{%n%s%n}", String.join("\n", scriptCommands)));
+        }
+        else {
+            throw new KeytoolNoCommandException("Command(s) not found");
+        }
+        return isAdminMode ? Arrays.asList(sbArgs.toString()) : scriptCommands;
+    }
+
+    private List<String> adminModeScript(List<String> commands) {
+        return adminModeCommand("powershell.exe", null, commands);
+    }
+
     private List<String> adminModeCommand(String executable, List<String> allArgs) {
+        return adminModeCommand(executable, allArgs, null);
+    }
+
+    private List<String> adminModeCommand(String executable, List<String> allArgs, List<String> commands) {
         var fullCommand = getPowershellCommand();
 
         var sbArgs = new StringBuilder();
-        allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
+        var scriptLines = getScriptLines();
 
-        var sbActualCommand = String.format("Exit (Start-Process %s -Wait -WindowStyle Hidden -PassThru -Verb RunAs%s%s).ExitCode",
+        if (null!=allArgs) {
+            allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
+        }
+
+        if (null!=commands) {
+            commands.forEach(sbArgs::append);
+        }
+
+        var sbActualCommand = String.format("Exit (Start-Process %s -Wait -PassThru -Verb RunAs%s%s).ExitCode",
                 quote(executable), (sbArgs.length() == 0 ? "" : " -argumentlist "), sbArgs);
 
         var command = String.join(" ", sbActualCommand);
-        var scriptLines = getScriptLines();
         scriptLines.add(command);
+
         var script = String.join("\n", scriptLines);
 
         var encodedCommand = Base64.getEncoder().encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
@@ -152,31 +232,84 @@ public final class KeytoolExecutor {
         var fullCommand = new ArrayList<String>();
 
         Optional.ofNullable(command).ifPresent(allArgs::add);
+        allArgs.addAll(args);
+        allArgs.addAll(zArgs);
 
-        if (args.size()>0) {
-            allArgs.addAll(args);
+        if (isScriptMode) {
+            System.out.println("Running in script mode.");
+
+            var script = prepareScript(executable, allArgs);
+            fullCommand.addAll(isAdminMode ? adminModeScript(script) : script);
+
+            if (!isAdminMode) {
+                System.out.println(CommandOutputFilter.filter(fullCommand, "\n"));
+            }
+        }
+        else {
+            var commandToRun = new ArrayList<String>();
+            commandToRun.add(executable.contains(" ") ? quote(executable) : executable);
+            commandToRun.addAll(allArgs.stream()
+                    .map(___arg -> ___arg.contains(" ") ? quote(___arg) : ___arg)
+                    .collect(Collectors.toList())
+            );
+
+            System.out.println(CommandOutputFilter.filter(commandToRun));
         }
 
-        if (zArgs.size()>0) {
-            allArgs.addAll(zArgs);
-        }
-
-        var commandToRun = new ArrayList<String>();
-        commandToRun.add(executable.contains(" ") ? quote(executable) : executable);
-        commandToRun.addAll(allArgs.stream()
-                .map(___arg -> ___arg.contains(" ") ? quote(___arg) : ___arg)
-                .collect(Collectors.toList())
-        );
-
-        System.out.println(CommandOutputFilter.filter(commandToRun));
-
-        if (isAdminMode) {
-            fullCommand.addAll(adminModeCommand(executable, allArgs));
-        } else {
-            fullCommand.add(executable);
-            fullCommand.addAll(allArgs);
+        if (!isScriptMode) {
+            if (isAdminMode) {
+                fullCommand.addAll(adminModeCommand(executable, allArgs));
+            } else {
+                fullCommand.add(executable);
+                fullCommand.addAll(allArgs);
+            }
         }
         return fullCommand;
+    }
+
+    private String executeSingleCommand() {
+        var sbCommand = new StringBuilder();
+        executable().ifPresent(___executable -> {
+            var fullCommand = prepareCommand(___executable);
+            sbCommand.append(String.join(" ", fullCommand).trim());
+            runCommand(fullCommand.toArray(new String[]{}));
+        });
+        return sbCommand.toString();
+    }
+
+    private void runCommand(String ... commands) {
+        if (!isNoop) {
+            CommandRunner.runCommand((___exitCode, ___output) -> {
+                var errorText = ___output.get(CommandRunner.Output.ERR);
+                var outputText = ___output.get(CommandRunner.Output.STD);
+                if (errorText.length() > 0) {
+                    System.err.println(errorText);
+                } else {
+                    System.out.println(outputText);
+                }
+
+                if (___exitCode != 0) {
+                    throw new KeytoolTaskExecutionException("Error performing the task.");
+                }
+            }, commands);
+        }
+    }
+
+    private String executeScriptCommands() {
+        var sbCommand = new StringBuilder();
+        executable().ifPresent(___executable -> {
+            var fullCommand = prepareCommand(___executable);
+            sbCommand.append(String.join("\n", fullCommand).trim());
+            if (isAdminMode) {
+                runCommand(fullCommand.toArray(new String[]{}));
+            }
+            else {
+                for (var command : fullCommand) {
+                    runCommand(command);
+                }
+            }
+        });
+        return sbCommand.toString();
     }
 
     /**
@@ -185,29 +318,12 @@ public final class KeytoolExecutor {
      * @return The command executed.
      */
     public String execute() {
-        var sbCommand = new StringBuilder();
-        executable().ifPresent(___executable -> {
-            var fullCommand = prepareCommand(___executable);
-            sbCommand.append(String.join(" ", fullCommand).trim());
-
-            if (!isNoop) {
-                CommandRunner.runCommand((___exitCode, ___output)-> {
-                    var errorText = ___output.get(CommandRunner.Output.ERR);
-                    var outputText = ___output.get(CommandRunner.Output.STD);
-                    if (errorText.length()>0) {
-                        System.err.println(errorText);
-                    }
-                    else {
-                        System.out.println(outputText);
-                    }
-
-                    if (___exitCode!=0) {
-                        throw new KeytoolTaskExecutionException("Error performing the task.");
-                    }
-                }, fullCommand.toArray(new String[]{}));
-            }
-        });
-        return sbCommand.toString();
+        if (isScriptMode) {
+            return executeScriptCommands();
+        }
+        else {
+            return executeSingleCommand();
+        }
     }
 
     /**
@@ -225,6 +341,8 @@ public final class KeytoolExecutor {
     public final static class KeytoolExecutorBuilder {
         private final List<String> args;
         private final List<String> zArgs;
+        private File dir;
+        private boolean isScriptMode;
         private boolean isAdminMode;
         private String command;
         private boolean isNoop;
@@ -332,6 +450,28 @@ public final class KeytoolExecutor {
          */
         public KeytoolExecutorBuilder addRunningInAdminMode(boolean runningInAdminMode) {
             this.runningInAdminMode = runningInAdminMode;
+            return this;
+        }
+
+        /**
+         * Add the location of the certificates.
+         *
+         * @param dir Add the directory where the certificates can be found.
+         * @return An instance of KeytoolExecutorBuilder
+         */
+        public KeytoolExecutorBuilder addDirectory(File dir) {
+            this.dir = dir;
+            return this;
+        }
+
+        /**
+         * Indicates that the command will be run in script mode. This means multiple sequence of commands.
+         *
+         * @param isScriptMode Set to true to run the command in script mode.
+         * @return An instance of KeytoolExecutorBuilder
+         */
+        public KeytoolExecutorBuilder addScriptMode(boolean isScriptMode) {
+            this.isScriptMode = isScriptMode;
             return this;
         }
     }

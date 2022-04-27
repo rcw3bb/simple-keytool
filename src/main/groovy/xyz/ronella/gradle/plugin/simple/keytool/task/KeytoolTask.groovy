@@ -10,6 +10,7 @@ import org.gradle.api.tasks.TaskAction
 import xyz.ronella.gradle.plugin.simple.keytool.KeytoolExecutor
 import xyz.ronella.gradle.plugin.simple.keytool.SimpleKeytoolPluginExtension
 import xyz.ronella.gradle.plugin.simple.keytool.args.ArgumentManager
+import xyz.ronella.gradle.plugin.simple.keytool.args.IDirArg
 import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType
 import xyz.ronella.gradle.plugin.simple.keytool.tool.RunAsChecker
 
@@ -23,13 +24,20 @@ abstract class KeytoolTask extends DefaultTask {
 
     final protected SimpleKeytoolPluginExtension EXTENSION
 
-    protected Property<Boolean> isAdminMode
-
     protected Property<String> internalCommand
 
     protected ListProperty<String> internalArgs
 
     protected ListProperty<String> internalZArgs
+
+    protected Property<Boolean> isScriptMode
+
+    /**
+     * Specifies if the command to be generated is to be run in elevated mode.
+     * @return True to run in elevated mode.
+     */
+    @Optional @Input
+    abstract Property<Boolean> getIsAdminMode()
 
     /**
      * Must hold the command to execute.
@@ -78,12 +86,13 @@ abstract class KeytoolTask extends DefaultTask {
         getZArgs().convention([])
 
         var objects = project.objects
-        isAdminMode = objects.property(Boolean.class)
+        isScriptMode = objects.property(Boolean.class)
         internalArgs = objects.listProperty(String.class)
         internalZArgs = objects.listProperty(String.class)
         internalCommand = objects.property(String.class)
 
         isAdminMode.convention(false)
+        isScriptMode.convention(false)
     }
 
     @Internal
@@ -115,7 +124,7 @@ abstract class KeytoolTask extends DefaultTask {
      */
     @TaskAction
     String executeCommand() {
-        var executor = KeytoolExecutor.getBuilder()
+        var builder = KeytoolExecutor.getBuilder()
                 .addNoop(EXTENSION.noop.getOrElse(false))
                 .addOSType(OSType.identify())
                 .addJavaHome(javaHome.getOrElse(EXTENSION.javaHome.getOrNull()))
@@ -123,7 +132,13 @@ abstract class KeytoolTask extends DefaultTask {
                 .addCommand(internalCommand.isPresent() ? internalCommand.get() : command.getOrNull())
                 .addArgs(allArgs.get().toArray((String[])[]))
                 .addRunningInAdminMode(RunAsChecker.isElevatedMode())
-                .build()
+                .addScriptMode(isScriptMode.get())
+
+        if (this instanceof IDirArg) {
+            builder.addDirectory((this as IDirArg).dir.asFile.getOrNull())
+        }
+
+        var executor = builder.build()
 
         var command = executor.execute()
         if (EXTENSION.showExecCode.getOrElse(false)) {
