@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Array;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -44,6 +43,8 @@ public final class KeytoolExecutor {
     private final boolean isAdminMode;
     private final boolean isScriptMode;
     private final File dir;
+    private final String dirAliasPrefix;
+    private final String dirAliasSuffix;
 
     private KeytoolExecutor(KeytoolExecutorBuilder builder) {
         executables = new ArrayList<>();
@@ -56,6 +57,8 @@ public final class KeytoolExecutor {
         dir = builder.dir;
         isScriptMode = builder.isScriptMode;
         isAdminMode = !builder.runningInAdminMode && builder.isAdminMode;
+        dirAliasPrefix = builder.dirAliasPrefix;
+        dirAliasSuffix = builder.dirAliasSuffix;
 
         prepareExecutables();
     }
@@ -154,7 +157,7 @@ public final class KeytoolExecutor {
 
     private void manageAliasParam(List<String> commands, String filename) {
         commands.add("-alias");
-        commands.add(String.format("%s [sk]", filename));
+        commands.add(String.format("%s %s %s", dirAliasPrefix, filename, dirAliasSuffix).trim());
     }
 
     private List<String> createScriptCommands(String executable, List<String> allArgs) {
@@ -356,6 +359,8 @@ public final class KeytoolExecutor {
     public final static class KeytoolExecutorBuilder {
         private final List<String> args;
         private final List<String> zArgs;
+        private String dirAliasPrefix;
+        private String dirAliasSuffix;
         private File dir;
         private boolean isScriptMode;
         private boolean isAdminMode;
@@ -368,6 +373,8 @@ public final class KeytoolExecutor {
         private KeytoolExecutorBuilder() {
             args = new ArrayList<>();
             zArgs = new ArrayList<>();
+            dirAliasPrefix = "";
+            dirAliasSuffix = "";
         }
 
         /**
@@ -487,6 +494,29 @@ public final class KeytoolExecutor {
          */
         public KeytoolExecutorBuilder addScriptMode(boolean isScriptMode) {
             this.isScriptMode = isScriptMode;
+            return this;
+        }
+
+        /**
+         * Add the alias prefix of the directory process certificates.
+         *
+         * @param prefix The terminal arguments.
+         * @return An instance of KeytoolExecutorBuilder
+         */
+        public KeytoolExecutorBuilder addDirAliasPrefix(String prefix) {
+            this.dirAliasPrefix = prefix;
+            return this;
+        }
+
+
+        /**
+         * Add the alias suffix of the directory process certificates.
+         *
+         * @param suffix The terminal arguments.
+         * @return An instance of KeytoolExecutorBuilder
+         */
+        public KeytoolExecutorBuilder addDirAliasSuffix(String suffix) {
+            this.dirAliasSuffix = suffix;
             return this;
         }
     }

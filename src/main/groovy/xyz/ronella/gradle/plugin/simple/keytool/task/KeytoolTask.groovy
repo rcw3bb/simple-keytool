@@ -133,6 +133,8 @@ abstract class KeytoolTask extends DefaultTask {
                 .addArgs(allArgs.get().toArray((String[])[]))
                 .addRunningInAdminMode(RunAsChecker.isElevatedMode())
                 .addScriptMode(isScriptMode.get())
+                .addDirAliasPrefix(EXTENSION.dirAliasPrefix.get())
+                .addDirAliasSuffix(EXTENSION.dirAliasSuffix.get())
 
         if (this instanceof IDirArg) {
             builder.addDirectory((this as IDirArg).dir.asFile.getOrNull())

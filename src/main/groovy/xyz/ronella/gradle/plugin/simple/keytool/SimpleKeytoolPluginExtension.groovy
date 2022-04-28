@@ -47,10 +47,26 @@ abstract class SimpleKeytoolPluginExtension {
     abstract Property<Boolean> getShowExecCode()
 
     /**
+     * Must hold the alias prefix of the directory processed certificates.
+     *
+     * @return The desired prefix.
+     */
+    abstract Property<String> getDirAliasPrefix()
+
+    /**
+     * Must hold the alias suffix of the directory processed certificates.
+     *
+     * @return The desired suffix.
+     */
+    abstract Property<String> getDirAliasSuffix()
+
+    /**
      * Create an instance of SimpleKeytoolPluginExtension.
      */
     SimpleKeytoolPluginExtension() {
         storePass.convention('changeit')
+        dirAliasPrefix.convention('')
+        dirAliasSuffix.convention('[sk]')
     }
 
 }

@@ -125,4 +125,37 @@ public class KeytoolExecutorTest {
         assertThrows(KeytoolNoCommandException.class, executor::execute);
     }
 
+
+    @Test
+    @EnabledOnOs({OS.WINDOWS})
+    public void testScriptCommandGeneratedAdminModeWithCustomPrefixSuffix() {
+        var executor = winExecutor.get()
+                .addCommand("-importcert")
+                .addArgs("arg1")
+                .addAdminMode(true)
+                .addScriptMode(true)
+                .addDirAliasPrefix("[prefix]")
+                .addDirAliasSuffix("[suffix]")
+                .addDirectory(Paths.get(".",  "src", "test", "resources", "certs").toFile())
+                .build();
+        var script = executor.execute();
+        var command = PSCommandDecoder.decode(script);
+        assertTrue(command.contains("\"\"-Command\"\"") && command.contains("[prefix] cert1.cer [suffix]"));
+    }
+
+    @Test
+    @EnabledOnOs({OS.WINDOWS})
+    public void testScriptCommandGeneratedAdminModeWithSuffixRemoved() {
+        var executor = winExecutor.get()
+                .addCommand("-importcert")
+                .addArgs("arg1")
+                .addAdminMode(true)
+                .addScriptMode(true)
+                .addDirAliasSuffix("")
+                .addDirectory(Paths.get(".",  "src", "test", "resources", "certs").toFile())
+                .build();
+        var script = executor.execute();
+        var command = PSCommandDecoder.decode(script);
+        assertTrue(command.contains("\"\"-Command\"\"") && command.contains("cert1.cer"));
+    }
 }
