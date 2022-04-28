@@ -27,6 +27,7 @@ class CACertsImportDirTaskTest {
     @Test
     void withVerboseParam() {
         project.tasks.cacertsImportDir.verbose=true
+        project.tasks.cacertsImportDir.storePass="changeit"
         project.tasks.cacertsImportDir.dir = project.file("../../../../resources/test/certs")
         var script = project.tasks.cacertsImportDir.executeCommand()
         var command = PSCommandDecoder.decode(script)

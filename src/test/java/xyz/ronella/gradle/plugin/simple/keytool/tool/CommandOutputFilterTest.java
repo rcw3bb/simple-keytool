@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class CommandOutputFilterTest {
 
@@ -54,4 +55,28 @@ public class CommandOutputFilterTest {
         var output = CommandOutputFilter.filter(input);
         assertEquals(expectation, output);
     }
+
+    @Test
+    public void commandWithStorepassInStringEmbedded() {
+        var input = Arrays.asList("\"C:\\Program Files\\OpenJDK\\jdk-17.0.1\\bin\\keytool.exe\" \"-list\" \"-cacerts\" \"-storetype\" \"storeType\" \"-storepass\" \"changeit\" \"-alias\" \"cert1.cer [sk]\"");
+        var expectation = "\"C:\\Program Files\\OpenJDK\\jdk-17.0.1\\bin\\keytool.exe\" \"-list\" \"-cacerts\" \"-storetype\" \"storeType\" \"-storepass\" *** \"-alias\" \"cert1.cer [sk]\"";
+        var output = CommandOutputFilter.filter(input);
+        assertEquals(expectation, output);
+    }
+
+    @Test
+    public void commandWithStorepassInString() {
+        var input = Arrays.asList("\"C:\\Program Files\\OpenJDK\\jdk-17.0.1\\bin\\keytool.exe\" \"-list\" \"-cacerts\" \"-storetype\" \"storeType\" \"-storepass\" \"changeit\"");
+        var expectation = "\"C:\\Program Files\\OpenJDK\\jdk-17.0.1\\bin\\keytool.exe\" \"-list\" \"-cacerts\" \"-storetype\" \"storeType\" \"-storepass\" ***";
+        var output = CommandOutputFilter.filter(input);
+        assertEquals(expectation, output);
+    }
+
+    @Test
+    public void commandWithEncodedCommand() {
+        var input = Arrays.asList("-EncodedCommand","JABQAHIAbwBnAHIAZQBzAHMAUAByAGUAZgBlAHIAZQBuAGMAZQAgAD0AIAAnAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUAJwAKAEUAeABpAHQAIAAoAFMAdABhAHIAdAAtAFAAcgBvAGMAZQBzAHMAIAAiAHAAbwB3AGUAcgBzAGgAZQBsAGwALgBlAHgAZQAiACAALQBXAGEAaQB0ACAALQBQAGEAcwBzAFQAaAByAHUAIAAtAFYAZQByAGIAIABSAHUAbgBBAHMAIAAtAGEAcgBnAHUAbQBlAG4AdABsAGkAcwB0ACAAIgAiACIALQBOAG8AUAByAG8AZgBpAGwAZQAiACIAIgAsACIAIgAiAC0ASQBuAHAAdQB0AEYAbwByAG0AYQB0ACIAIgAiACwAIgAiACIATgBvAG4AZQAiACIAIgAsACIAIgAiAC0ARQB4AGUAYwB1AHQAaQBvAG4AUABvAGwAaQBjAHkAIgAiACIALAAiACIAIgBCAHkAcABhAHMAcwAiACIAIgAsACIAIgAiAC0AQwBvAG0AbQBhAG4AZAAiACIAIgAsAHsADQAKACYAIAAnAEMAOgBcAFAAcgBvAGcAcgBhAG0AIABGAGkAbABlAHMAXABPAHAAZQBuAEoARABLAFwAagBkAGsALQAxADcALgAwAC4AMQBcAGIAaQBuAFwAawBlAHkAdABvAG8AbAAuAGUAeABlACcAIAAnAC0AaQBtAHAAbwByAHQAYwBlAHIAdAAnACAAJwAtAGMAYQBjAGUAcgB0AHMAJwAgACcALQB2ACcAIAAnAC0AcwB0AG8AcgBlAHAAYQBzAHMAJwAgACcAYwBoAGEAbgBnAGUAaQB0ACcAIAAnAC0AYQBsAGkAYQBzACcAIAAnAGMAZQByAHQAMQAuAGMAZQByACAAWwBzAGsAXQAnACAAJwAtAGYAaQBsAGUAJwAgACcAQwA6AFwAZABlAHYAXABjAG8AZABlAHMAXABzAGkAbQBwAGwAZQAtAGsAZQB5AHQAbwBvAGwAXABiAHUAaQBsAGQAXAByAGUAcwBvAHUAcgBjAGUAcwBcAHQAZQBzAHQAXABjAGUAcgB0AHMAXABjAGUAcgB0ADEALgBjAGUAcgAnAAoAJgAgACcAQwA6AFwAUAByAG8AZwByAGEAbQAgAEYAaQBsAGUAcwBcAE8AcABlAG4ASgBEAEsAXABqAGQAawAtADEANwAuADAALgAxAFwAYgBpAG4AXABrAGUAeQB0AG8AbwBsAC4AZQB4AGUAJwAgACcALQBpAG0AcABvAHIAdABjAGUAcgB0ACcAIAAnAC0AYwBhAGMAZQByAHQAcwAnACAAJwAtAHYAJwAgACcALQBzAHQAbwByAGUAcABhAHMAcwAnACAAJwBjAGgAYQBuAGcAZQBpAHQAJwAgACcALQBhAGwAaQBhAHMAJwAgACcAYwBlAHIAdAAyAC4AYwBlAHIAIABbAHMAawBdACcAIAAnAC0AZgBpAGwAZQAnACAAJwBDADoAXABkAGUAdgBcAGMAbwBkAGUAcwBcAHMAaQBtAHAAbABlAC0AawBlAHkAdABvAG8AbABcAGIAdQBpAGwAZABcAHIAZQBzAG8AdQByAGMAZQBzAFwAdABlAHMAdABcAGMAZQByAHQAcwBcAGMAZQByAHQAMgAuAGMAZQByACcADQAKAH0AKQAuAEUAeABpAHQAQwBvAGQAZQA=");
+        var output = CommandOutputFilter.filter(input);
+        assertFalse(output.contains("changeit"));
+    }
 }
+

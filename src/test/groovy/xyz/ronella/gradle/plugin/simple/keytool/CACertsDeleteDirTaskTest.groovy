@@ -41,7 +41,6 @@ class CACertsDeleteDirTaskTest  {
         project.tasks.cacertsDeleteDir.dir = project.file("../../../../resources/test/certs")
         var script = project.tasks.cacertsDeleteDir.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        printf("Command: %s%n", command)
         assertTrue(command.contains("-Command") && command.contains("keytool.exe") && command.contains("delete")
                 && !command.contains("-file") && command.contains("cacerts")
                 && command.contains("cert1.cer [sk]") && command.contains("cert2.cer [sk]"))

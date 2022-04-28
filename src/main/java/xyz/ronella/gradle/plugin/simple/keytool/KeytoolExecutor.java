@@ -236,14 +236,10 @@ public final class KeytoolExecutor {
         allArgs.addAll(zArgs);
 
         if (isScriptMode) {
-            System.out.println("Running in script mode.");
-
             var script = prepareScript(executable, allArgs);
             fullCommand.addAll(isAdminMode ? adminModeScript(script) : script);
 
-            if (!isAdminMode) {
-                System.out.println(CommandOutputFilter.filter(fullCommand, "\n"));
-            }
+            System.out.println(CommandOutputFilter.filter(fullCommand, "\n"));
         }
         else {
             var commandToRun = new ArrayList<String>();

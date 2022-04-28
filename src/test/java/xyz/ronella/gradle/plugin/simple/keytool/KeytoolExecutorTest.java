@@ -97,7 +97,6 @@ public class KeytoolExecutorTest {
                 .build();
         var script = executor.execute();
         var command = PSCommandDecoder.decode(script);
-        System.out.printf("Command: %s%n", command);
         assertTrue(command.contains("\"\"-Command\"\""));
     }
 
@@ -111,7 +110,6 @@ public class KeytoolExecutorTest {
                 .addDirectory(Paths.get(".",  "src", "test", "resources", "certs").toFile())
                 .build();
         var script = executor.execute();
-        System.out.printf("Script: %s%n", script);
         assertTrue(script.contains("keytool.exe") && script.contains("cert1.cer") && script.contains("cert2.cer"));
     }
 
