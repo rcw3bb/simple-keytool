@@ -23,7 +23,10 @@ class SimpleKeytoolPlugin implements Plugin<Project> {
         project.task('cacertsListDir', type: CACertsListDirTask)
         project.task('keytoolTask', type: KeytoolTask)
         project.task('ksDelete', type: KSDeleteTask)
+        project.task('ksDeleteDir', type: KSDeleteDirTask)
         project.task('ksImport', type: KSImportTask)
+        project.task('ksImportDir', type: KSImportDirTask)
         project.task('ksList', type: KSListTask)
+        project.task('ksListDir', type: KSListDirTask)
     }
 }

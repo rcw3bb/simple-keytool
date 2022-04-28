@@ -8,7 +8,7 @@ import xyz.ronella.gradle.plugin.simple.keytool.tool.PSCommandDecoder
 
 import static org.junit.jupiter.api.Assertions.*
 
-class CACertsDeleteDirTaskTest  {
+class CACertsDeleteDirTaskTest {
     private Project project
 
     @BeforeEach
