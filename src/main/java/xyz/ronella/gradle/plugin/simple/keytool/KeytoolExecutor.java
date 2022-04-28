@@ -8,7 +8,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Array;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -142,43 +144,52 @@ public final class KeytoolExecutor {
         return String.format("'%s'", text);
     }
 
-    private List<String> prepareScript(String executable, List<String> allArgs) {
-        var sbArgs = new StringBuilder();
-        getPowershellArgs().forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
+    private void manageImportCertParam(List<String> commands, Optional<String> ktCommand, Path certPath) {
+        if ("-importcert".equalsIgnoreCase(ktCommand.orElse(""))) {
+            commands.add("-file");
+            var certFile = certPath.toFile().getAbsolutePath();
+            commands.add(certFile);
+        }
+    }
 
+    private void manageAliasParam(List<String> commands, String filename) {
+        commands.add("-alias");
+        commands.add(String.format("%s [sk]", filename));
+    }
+
+    private List<String> createScriptCommands(String executable, List<String> allArgs) {
         var scriptCommands = new ArrayList<String>();
-        var ktCommand = allArgs.stream().findFirst();
 
         if (null!=dir && dir.exists()) {
+            var ktCommand = allArgs.stream().findFirst();
             try (var entries = Files.list(dir.toPath())) {
                 entries.forEach(___path -> {
                     var filename = ___path.toFile().getName();
                     var scriptCommand = new ArrayList<String>();
                     var commands = new ArrayList<String>();
 
-                    if (isAdminMode) {
-                        scriptCommand.add("&");
-                    }
+                    scriptCommand.add(isAdminMode ? "&" : "");
                     commands.add(executable);
                     commands.addAll(allArgs);
-
-                    commands.add("-alias");
-                    commands.add(String.format("%s [sk]", filename));
-
-                    if ("-importcert".equalsIgnoreCase(ktCommand.orElse(""))) {
-                        commands.add("-file");
-                        var certFile = ___path.toFile().getAbsolutePath();
-                        commands.add(certFile);
-                    }
+                    manageAliasParam(commands, filename);
+                    manageImportCertParam(commands, ktCommand, ___path);
 
                     scriptCommand.addAll(commands.stream().map(___command -> isAdminMode ? singleQuote(___command) : quote(___command)).collect(Collectors.toList()));
                     scriptCommands.add(String.join(" ", scriptCommand));
                 });
-
             } catch (IOException e) {
                 throw new KeytoolException(e.getMessage());
             }
         }
+
+        return scriptCommands;
+    }
+
+    private List<String> prepareScript(String executable, List<String> allArgs) {
+        var sbArgs = new StringBuilder();
+        getPowershellArgs().forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
+
+        var scriptCommands = createScriptCommands(executable, allArgs);
 
         if (scriptCommands.size()>0) {
             sbArgs.append(",").append(tripleQuote("-Command"));
@@ -226,6 +237,27 @@ public final class KeytoolExecutor {
         return fullCommand;
     }
 
+    private List<String> commandToRun(String executable, List<String> allArgs) {
+        var commandToRun = new ArrayList<String>();
+        commandToRun.add(executable.contains(" ") ? quote(executable) : executable);
+        commandToRun.addAll(allArgs.stream()
+                .map(___arg -> ___arg.contains(" ") ? quote(___arg) : ___arg)
+                .collect(Collectors.toList())
+        );
+        return commandToRun;
+    }
+
+    private void finalizedCommand(List<String> fullCommand, String executable, List<String> allArgs) {
+        if (!isScriptMode) {
+            if (isAdminMode) {
+                fullCommand.addAll(adminModeCommand(executable, allArgs));
+            } else {
+                fullCommand.add(executable);
+                fullCommand.addAll(allArgs);
+            }
+        }
+    }
+
     private List<String> prepareCommand(File keytoolExecutable) {
         var executable = keytoolExecutable.getAbsolutePath();
         var allArgs = new ArrayList<String>();
@@ -238,28 +270,15 @@ public final class KeytoolExecutor {
         if (isScriptMode) {
             var script = prepareScript(executable, allArgs);
             fullCommand.addAll(isAdminMode ? adminModeScript(script) : script);
-
             System.out.println(CommandOutputFilter.filter(fullCommand, "\n"));
         }
         else {
-            var commandToRun = new ArrayList<String>();
-            commandToRun.add(executable.contains(" ") ? quote(executable) : executable);
-            commandToRun.addAll(allArgs.stream()
-                    .map(___arg -> ___arg.contains(" ") ? quote(___arg) : ___arg)
-                    .collect(Collectors.toList())
-            );
-
+            var commandToRun = commandToRun(executable, allArgs);
             System.out.println(CommandOutputFilter.filter(commandToRun));
         }
 
-        if (!isScriptMode) {
-            if (isAdminMode) {
-                fullCommand.addAll(adminModeCommand(executable, allArgs));
-            } else {
-                fullCommand.add(executable);
-                fullCommand.addAll(allArgs);
-            }
-        }
+        finalizedCommand(fullCommand, executable, allArgs);
+
         return fullCommand;
     }
 
