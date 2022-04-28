@@ -5,6 +5,7 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import xyz.ronella.gradle.plugin.simple.keytool.task.KeytoolTask
+import xyz.ronella.gradle.plugin.simple.keytool.tool.PSCommandDecoder
 
 import static org.junit.jupiter.api.Assertions.*
 
@@ -64,6 +65,21 @@ class KeytoolTaskTest {
         task.getZArgs().add('zarg1')
         def command = project.tasks.keytoolTask.executeCommand()
         assertTrue(command.endsWith('keytool.exe command arg1 arg2 zarg1'))
+    }
+
+    @Test
+    void withCommandSingleZArgParamAsAdmin() {
+        def task = (KeytoolTask) project.tasks.keytoolTask
+        task.command = 'command'
+        task.isAdminMode = true
+        task.args = ['arg1', 'arg2']
+        task.getZArgs().add('zarg1')
+        def command = project.tasks.keytoolTask.executeCommand()
+        def adminCommand = PSCommandDecoder.decode(command)
+        assertTrue(adminCommand.contains("keytool.exe") && adminCommand.contains("command")
+            && adminCommand.contains("RunAs") && adminCommand.contains("arg1")
+            && adminCommand.contains("arg2") && adminCommand.contains("zarg1")
+        )
     }
 
     @Test
