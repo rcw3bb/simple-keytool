@@ -125,7 +125,6 @@ public class KeytoolExecutorTest {
         assertThrows(KeytoolNoCommandException.class, executor::execute);
     }
 
-
     @Test
     @EnabledOnOs({OS.WINDOWS})
     public void testScriptCommandGeneratedAdminModeWithCustomPrefixSuffix() {

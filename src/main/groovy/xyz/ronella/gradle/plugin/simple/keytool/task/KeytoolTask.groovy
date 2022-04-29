@@ -137,7 +137,9 @@ abstract class KeytoolTask extends DefaultTask {
                 .addDirAliasSuffix(EXTENSION.dirAliasSuffix.get())
 
         if (this instanceof IDirArg) {
-            builder.addDirectory((this as IDirArg).dir.asFile.getOrNull())
+            var dirArg = (IDirArg) this
+            builder.addDirectory(dirArg.dir.asFile.getOrNull())
+            builder.addFileArgs(dirArg.fileArgs.getOrElse(Collections.emptyMap()))
         }
 
         var executor = builder.build()

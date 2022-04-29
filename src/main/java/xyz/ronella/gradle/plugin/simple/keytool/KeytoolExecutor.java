@@ -43,6 +43,7 @@ public final class KeytoolExecutor {
     private final boolean isAdminMode;
     private final boolean isScriptMode;
     private final File dir;
+    private final Map<String, List<String>> fileArgs;
     private final String dirAliasPrefix;
     private final String dirAliasSuffix;
 
@@ -55,12 +56,13 @@ public final class KeytoolExecutor {
         args = builder.args;
         zArgs = builder.zArgs;
         dir = builder.dir;
+        fileArgs = builder.fileArgs;
         isScriptMode = builder.isScriptMode;
         isAdminMode = !builder.runningInAdminMode && builder.isAdminMode;
         dirAliasPrefix = builder.dirAliasPrefix;
         dirAliasSuffix = builder.dirAliasSuffix;
 
-        prepareExecutables();
+        initExecutables();
     }
 
     private File getExecutableAuto() {
@@ -80,7 +82,7 @@ public final class KeytoolExecutor {
         return null;
     }
 
-    private void prepareExecutables() {
+    private void initExecutables() {
         Consumer<Supplier<File>> addExecLogic = executables::add;
 
         Optional.ofNullable(javaHome).ifPresent(___javaHome ->
@@ -147,8 +149,8 @@ public final class KeytoolExecutor {
         return String.format("'%s'", text);
     }
 
-    private void manageImportCertParam(List<String> commands, Optional<String> ktCommand, Path certPath) {
-        if ("-importcert".equalsIgnoreCase(ktCommand.orElse(""))) {
+    private void manageImportCertParam(List<String> commands, String ktCommand, Path certPath) {
+        if ("-importcert".equalsIgnoreCase(ktCommand)) {
             commands.add("-file");
             var certFile = certPath.toFile().getAbsolutePath();
             commands.add(certFile);
@@ -156,8 +158,25 @@ public final class KeytoolExecutor {
     }
 
     private void manageAliasParam(List<String> commands, String filename) {
-        commands.add("-alias");
-        commands.add(String.format("%s %s %s", dirAliasPrefix, filename, dirAliasSuffix).trim());
+        if (!commands.contains("-alias")) {
+            commands.add("-alias");
+            commands.add(String.format("%s %s %s", dirAliasPrefix, filename, dirAliasSuffix).trim());
+        }
+    }
+
+    private List<String> buildCommands(String executable, List<String> allArgs) {
+        var commands = new ArrayList<String>();
+        commands.add(executable);
+        commands.addAll(allArgs);
+        return commands;
+    }
+
+    private List<String> buildScriptCommand() {
+        var scriptCommand = new ArrayList<String>();
+        if (isAdminMode) {
+            scriptCommand.add("&");
+        }
+        return scriptCommand;
     }
 
     private List<String> createScriptCommands(String executable, List<String> allArgs) {
@@ -168,15 +187,11 @@ public final class KeytoolExecutor {
             try (var entries = Files.list(dir.toPath())) {
                 entries.forEach(___path -> {
                     var filename = ___path.toFile().getName();
-                    var scriptCommand = new ArrayList<String>();
-                    var commands = new ArrayList<String>();
+                    var commands = buildCommands(executable, allArgs);
+                    manageFileSpecificParam(commands, filename);
+                    manageImportCertParam(commands, ktCommand.orElse(""), ___path);
 
-                    scriptCommand.add(isAdminMode ? "&" : "");
-                    commands.add(executable);
-                    commands.addAll(allArgs);
-                    manageAliasParam(commands, filename);
-                    manageImportCertParam(commands, ktCommand, ___path);
-
+                    var scriptCommand = buildScriptCommand();
                     scriptCommand.addAll(commands.stream().map(___command -> isAdminMode ? singleQuote(___command) : quote(___command)).collect(Collectors.toList()));
                     scriptCommands.add(String.join(" ", scriptCommand));
                 });
@@ -188,7 +203,13 @@ public final class KeytoolExecutor {
         return scriptCommands;
     }
 
-    private List<String> prepareScript(String executable, List<String> allArgs) {
+    private void manageFileSpecificParam(List<String> commands, String filename) {
+        var fArgs = fileArgs.getOrDefault(filename, Collections.emptyList());
+        commands.addAll(fArgs);
+        manageAliasParam(commands, filename);
+    }
+
+    private List<String> buildScript(String executable, List<String> allArgs) {
         var sbArgs = new StringBuilder();
         getPowershellArgs().forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
 
@@ -212,11 +233,18 @@ public final class KeytoolExecutor {
         return adminModeCommand(executable, allArgs, null);
     }
 
-    private List<String> adminModeCommand(String executable, List<String> allArgs, List<String> commands) {
+    private List<String> completeAdminCommand(List<String> scriptLines) {
         var fullCommand = getPowershellCommand();
+        var script = String.join("\n", scriptLines);
+        var encodedCommand = Base64.getEncoder().encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
 
+        fullCommand.add(encodedCommand);
+
+        return fullCommand;
+    }
+
+    private String buildAdminCommand(String executable, List<String> allArgs, List<String> commands) {
         var sbArgs = new StringBuilder();
-        var scriptLines = getScriptLines();
 
         if (null!=allArgs) {
             allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
@@ -226,18 +254,18 @@ public final class KeytoolExecutor {
             commands.forEach(sbArgs::append);
         }
 
-        var sbActualCommand = String.format("Exit (Start-Process %s -Wait -PassThru -Verb RunAs%s%s).ExitCode",
+        return String.format("Exit (Start-Process %s -Wait -PassThru -Verb RunAs%s%s).ExitCode",
                 quote(executable), (sbArgs.length() == 0 ? "" : " -argumentlist "), sbArgs);
+    }
+
+    private List<String> adminModeCommand(String executable, List<String> allArgs, List<String> commands) {
+        var scriptLines = getScriptLines();
+        var sbActualCommand = buildAdminCommand(executable, allArgs, commands);
 
         var command = String.join(" ", sbActualCommand);
         scriptLines.add(command);
 
-        var script = String.join("\n", scriptLines);
-
-        var encodedCommand = Base64.getEncoder().encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
-
-        fullCommand.add(encodedCommand);
-        return fullCommand;
+        return completeAdminCommand(scriptLines);
     }
 
     private List<String> commandToRun(String executable, List<String> allArgs) {
@@ -261,7 +289,7 @@ public final class KeytoolExecutor {
         }
     }
 
-    private List<String> prepareCommand(File keytoolExecutable) {
+    private List<String> buildCommand(File keytoolExecutable) {
         var executable = keytoolExecutable.getAbsolutePath();
         var allArgs = new ArrayList<String>();
         var fullCommand = new ArrayList<String>();
@@ -271,7 +299,7 @@ public final class KeytoolExecutor {
         allArgs.addAll(zArgs);
 
         if (isScriptMode) {
-            var script = prepareScript(executable, allArgs);
+            var script = buildScript(executable, allArgs);
             fullCommand.addAll(isAdminMode ? adminModeScript(script) : script);
             System.out.println(CommandOutputFilter.filter(fullCommand, "\n"));
         }
@@ -288,7 +316,7 @@ public final class KeytoolExecutor {
     private String executeSingleCommand() {
         var sbCommand = new StringBuilder();
         executable().ifPresent(___executable -> {
-            var fullCommand = prepareCommand(___executable);
+            var fullCommand = buildCommand(___executable);
             sbCommand.append(String.join(" ", fullCommand).trim());
             runCommand(fullCommand.toArray(new String[]{}));
         });
@@ -316,7 +344,7 @@ public final class KeytoolExecutor {
     private String executeScriptCommands() {
         var sbCommand = new StringBuilder();
         executable().ifPresent(___executable -> {
-            var fullCommand = prepareCommand(___executable);
+            var fullCommand = buildCommand(___executable);
             sbCommand.append(String.join("\n", fullCommand).trim());
             if (isAdminMode) {
                 runCommand(fullCommand.toArray(new String[]{}));
@@ -359,6 +387,7 @@ public final class KeytoolExecutor {
     public final static class KeytoolExecutorBuilder {
         private final List<String> args;
         private final List<String> zArgs;
+        private final Map<String, List<String>> fileArgs;
         private String dirAliasPrefix;
         private String dirAliasSuffix;
         private File dir;
@@ -373,6 +402,7 @@ public final class KeytoolExecutor {
         private KeytoolExecutorBuilder() {
             args = new ArrayList<>();
             zArgs = new ArrayList<>();
+            fileArgs = new HashMap<>();
             dirAliasPrefix = "";
             dirAliasSuffix = "";
         }
@@ -517,6 +547,17 @@ public final class KeytoolExecutor {
          */
         public KeytoolExecutorBuilder addDirAliasSuffix(String suffix) {
             this.dirAliasSuffix = suffix;
+            return this;
+        }
+
+        /**
+         * Add arguments for a particular certificate file.
+         *
+         * @param fileArgs The certificate files arguments.
+         * @return An instance of KeytoolExecutorBuilder
+         */
+        public KeytoolExecutorBuilder addFileArgs(Map<String, List<String>> fileArgs) {
+            this.fileArgs.putAll(fileArgs);
             return this;
         }
     }

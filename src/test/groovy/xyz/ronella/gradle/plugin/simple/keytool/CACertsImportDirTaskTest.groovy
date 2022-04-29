@@ -47,4 +47,34 @@ class CACertsImportDirTaskTest {
                 && command.contains("cert1.cer") && command.contains("cert2.cer"))
     }
 
+    @Test
+    void differentCert1Args() {
+        project.tasks.cacertsImportDir.storeType='storeType'
+        project.tasks.cacertsImportDir.dir = project.file("../../../../resources/test/certs")
+        project.tasks.cacertsImportDir.fileArgs = ["cert1.cer": ["-customArg"]]
+        var script = project.tasks.cacertsImportDir.executeCommand()
+        var command = PSCommandDecoder.decode(script)
+        assertTrue(command.contains("-Command") && command.contains("keytool.exe") && command.contains("importcert")
+                && command.contains("cacerts") && command.contains("-file")
+                && command.contains("-customArg") && command.contains("cert1.cer")
+                && command.contains("cert2.cer"))
+    }
+
+    @Test
+    void differentCert1Alias() {
+        project.tasks.cacertsImportDir.storeType='storeType'
+        project.tasks.cacertsImportDir.dir = project.file("../../../../resources/test/certs")
+        project.tasks.cacertsImportDir.fileArgs = [
+                "cert1.cer": ["-alias", "myalias"],
+                "cert2.cer": ["-alias", "mycert2"]
+        ]
+        var script = project.tasks.cacertsImportDir.executeCommand()
+        var command = PSCommandDecoder.decode(script)
+        assertTrue(command.contains("-Command") && command.contains("keytool.exe")
+                && command.contains("importcert") && command.contains("cacerts")
+                && command.contains("-file") && command.contains("cert1.cer")
+                && !command.contains("cert1.cer [sk]") && !command.contains("cert2.cer [sk]")
+                && command.contains("myalias") && command.contains("cert2.cer")
+                && command.contains("mycert2"))
+    }
 }
