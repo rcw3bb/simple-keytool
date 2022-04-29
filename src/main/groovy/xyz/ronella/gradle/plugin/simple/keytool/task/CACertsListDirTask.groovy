@@ -16,7 +16,7 @@ abstract class CACertsListDirTask extends KeytoolTask
      */
     CACertsListDirTask() {
         super()
-        description = 'Convenience task to display cacerts based on a directory.'
+        description = 'Convenience task to display cacerts content based on a directory.'
         internalCommand.convention('-list')
         internalArgs.set(['-cacerts'])
         isScriptMode.convention(true)

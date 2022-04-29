@@ -16,7 +16,7 @@ abstract class KSListDirTask extends KeytoolTask
      */
     KSListDirTask() {
         super()
-        description = 'Convenience task to display keystore certificates based on a directory.'
+        description = 'Convenience task to display the keystore content based on a directory.'
         internalCommand.convention('-list')
         isScriptMode.convention(true)
     }

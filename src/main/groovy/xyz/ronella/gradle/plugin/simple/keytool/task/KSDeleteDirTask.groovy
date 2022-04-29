@@ -16,7 +16,7 @@ abstract class KSDeleteDirTask extends KeytoolTask
      */
     KSDeleteDirTask() {
         super()
-        description = 'Convenience task to delete the certificates based on the content of a directory from a keystore.'
+        description = 'Convenience task to delete certificates based on a directory from a keystore.'
         internalCommand.convention('-delete')
         isAdminMode.convention(true)
         isScriptMode.convention(true)

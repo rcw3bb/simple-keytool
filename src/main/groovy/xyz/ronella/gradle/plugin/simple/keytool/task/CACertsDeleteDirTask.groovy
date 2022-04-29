@@ -16,7 +16,7 @@ abstract class CACertsDeleteDirTask extends KeytoolTask
      */
     CACertsDeleteDirTask() {
         super()
-        description = 'Convenience task to delete the certificates based on the content of a directory from cacerts.'
+        description = 'Convenience task to delete certificates based on a directory from cacerts.'
         internalCommand.convention('-delete')
         internalArgs.set(['-cacerts'])
         isAdminMode.convention(true)

@@ -22,7 +22,7 @@ abstract class KSDeleteTask extends KeytoolTask
      */
     KSDeleteTask() {
         super()
-        description = 'Convenience task to delete a certificate from keystore.'
+        description = 'Convenience task to delete a certificate from a keystore.'
         internalCommand.convention('-delete')
         isAdminMode.convention(true)
     }

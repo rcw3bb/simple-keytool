@@ -23,7 +23,7 @@ abstract class KSImportTask extends KeytoolTask
      */
     KSImportTask() {
         super()
-        description = 'Convenience task to import a certificate to keystore.'
+        description = 'Convenience task to import a certificate to a keystore.'
         internalCommand.convention('-importcert')
         isAdminMode.convention(true)
     }

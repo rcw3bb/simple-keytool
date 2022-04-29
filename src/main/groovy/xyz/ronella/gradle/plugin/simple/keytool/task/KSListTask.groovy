@@ -17,7 +17,7 @@ abstract class KSListTask extends KeytoolTask
      */
     KSListTask() {
         super()
-        description = 'Convenience task to display keystore content.'
+        description = 'Convenience task to display the keystore content.'
         internalCommand.convention('-list')
     }
 }
