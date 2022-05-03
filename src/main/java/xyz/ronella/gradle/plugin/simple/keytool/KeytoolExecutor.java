@@ -323,16 +323,22 @@ public final class KeytoolExecutor {
         return sbCommand.toString();
     }
 
+    private void nonBlankText(String text, Consumer<String> nonBlankLogic) {
+        Optional.ofNullable(text).ifPresent(___text -> {
+            if (!___text.isBlank()) {
+                nonBlankLogic.accept(___text);
+            }
+        });
+    }
+
     private void runCommand(String ... commands) {
         if (!isNoop) {
             CommandRunner.runCommand((___exitCode, ___output) -> {
                 var errorText = ___output.get(CommandRunner.Output.ERR);
                 var outputText = ___output.get(CommandRunner.Output.STD);
-                if (errorText.length() > 0) {
-                    System.err.println(errorText);
-                } else {
-                    System.out.println(outputText);
-                }
+
+                nonBlankText(outputText, System.out::println);
+                nonBlankText(errorText, System.err::println);
 
                 if (___exitCode != 0) {
                     throw new KeytoolTaskExecutionException("Error performing the task.");
