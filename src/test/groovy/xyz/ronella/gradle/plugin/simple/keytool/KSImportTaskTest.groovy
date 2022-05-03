@@ -70,4 +70,13 @@ class KSImportTaskTest {
         var command = PSCommandDecoder.decode(script)
         assertTrue(command.contains('"-keystore"'))
     }
+
+    @Test
+    void withKeyPassParam() {
+        project.tasks.ksImport.keyPass='password'
+        project.tasks.ksImport.keyStore = project.file('keystore')
+        var script = project.tasks.ksImport.executeCommand()
+        var command = PSCommandDecoder.decode(script)
+        assertTrue(command.contains('"-keypass"'))
+    }
 }

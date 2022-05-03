@@ -9,7 +9,7 @@ import xyz.ronella.gradle.plugin.simple.keytool.args.*
  * @since 1.0.0
  */
 abstract class KSDeleteDirTask extends KeytoolTask
-        implements IDirArg, IVerboseArg, IStorePassArg, IKeyPassArg, IStoreTypeArg, IKeyStoreArg {
+        implements IDirArg, IVerboseArg, IStorePassArg, IStoreTypeArg, IKeyStoreArg {
 
     /**
      * Creates an instance of KSDeleteDirTask.

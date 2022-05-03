@@ -9,8 +9,7 @@ import xyz.ronella.gradle.plugin.simple.keytool.args.*
  * @since 1.0.0
  */
 abstract class KSListTask extends KeytoolTask
-        implements IAliasArg, IStorePassArg, IVerboseArg, IKeyStoreArg, IStoreTypeArg,
-                IKeyPassArg {
+        implements IAliasArg, IStorePassArg, IVerboseArg, IKeyStoreArg, IStoreTypeArg {
 
     /**
      * Creates an instance of KSListTask.

@@ -1,6 +1,7 @@
 package xyz.ronella.gradle.plugin.simple.keytool.task
 
 import xyz.ronella.gradle.plugin.simple.keytool.args.IAliasArg
+import xyz.ronella.gradle.plugin.simple.keytool.args.IAliasRequiredArg
 import xyz.ronella.gradle.plugin.simple.keytool.args.IFileArg
 import xyz.ronella.gradle.plugin.simple.keytool.args.IKeyPassArg
 import xyz.ronella.gradle.plugin.simple.keytool.args.IKeyStoreArg
@@ -15,7 +16,7 @@ import xyz.ronella.gradle.plugin.simple.keytool.args.IVerboseArg
  * @since 1.0.0
  */
 abstract class KSImportTask extends KeytoolTask
-        implements IAliasArg, IFileArg, IVerboseArg, IStorePassArg, IKeyPassArg, IStoreTypeArg,
+        implements IAliasRequiredArg, IFileArg, IVerboseArg, IStorePassArg, IKeyPassArg, IStoreTypeArg,
                 IKeyStoreArg {
 
     /**

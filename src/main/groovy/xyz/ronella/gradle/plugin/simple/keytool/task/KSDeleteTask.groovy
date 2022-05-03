@@ -14,7 +14,7 @@ import xyz.ronella.gradle.plugin.simple.keytool.args.IVerboseArg
  * @since 1.0.0
  */
 abstract class KSDeleteTask extends KeytoolTask
-        implements IAliasRequiredArg, IVerboseArg, IStorePassArg, IKeyPassArg, IStoreTypeArg,
+        implements IAliasRequiredArg, IVerboseArg, IStorePassArg, IStoreTypeArg,
                 IKeyStoreArg {
 
     /**

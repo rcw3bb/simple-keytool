@@ -1,6 +1,7 @@
 package xyz.ronella.gradle.plugin.simple.keytool.task
 
 import xyz.ronella.gradle.plugin.simple.keytool.args.IAliasArg
+import xyz.ronella.gradle.plugin.simple.keytool.args.IAliasRequiredArg
 import xyz.ronella.gradle.plugin.simple.keytool.args.IFileArg
 import xyz.ronella.gradle.plugin.simple.keytool.args.IKeyPassArg
 import xyz.ronella.gradle.plugin.simple.keytool.args.IStorePassArg
@@ -14,7 +15,7 @@ import xyz.ronella.gradle.plugin.simple.keytool.args.IVerboseArg
  * @since 1.0.0
  */
 abstract class CACertsImportTask extends KeytoolTask
-        implements IAliasArg, IFileArg, IVerboseArg, IStorePassArg, IKeyPassArg, IStoreTypeArg {
+        implements IAliasRequiredArg, IFileArg, IVerboseArg, IStorePassArg, IKeyPassArg, IStoreTypeArg {
 
     /**
      * Creates an instance of CACertsListTask.

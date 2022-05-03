@@ -56,6 +56,15 @@ class CACertsImportTaskTest {
     }
 
     @Test
+    void withKeyPassParam() {
+        project.tasks.cacertsImport.storeType='storeType'
+        project.tasks.cacertsImport.keyPass='password'
+        var script = project.tasks.cacertsImport.executeCommand()
+        var command = PSCommandDecoder.decode(script)
+        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-keypass""","""password""","""-storetype""","""storeType""","""-storepass""'))
+    }
+
+    @Test
     void withFileParam() {
         project.tasks.cacertsImport.file=project.file('dummy')
         var script = project.tasks.cacertsImport.executeCommand()

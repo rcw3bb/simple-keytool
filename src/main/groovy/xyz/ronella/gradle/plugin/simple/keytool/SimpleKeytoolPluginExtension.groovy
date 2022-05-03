@@ -11,13 +11,6 @@ import org.gradle.api.provider.Property
 abstract class SimpleKeytoolPluginExtension {
 
     /**
-     * Provides more detailed output when true if it implements IVerboseArg.
-     *
-     * @return True to have detailed output.
-     */
-    abstract Property<Boolean> getVerbose()
-
-    /**
      * Display the command to be executed but not actually executes the command.
      *
      * @return True to suppress execution.

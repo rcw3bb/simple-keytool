@@ -17,7 +17,7 @@ pluginBundle {
     website = 'https://github.com/rcw3bb/simple-keytool'
     vcsUrl = 'https://github.com/rcw3bb/simple-keytool'
     description = pluginDescription
-    tags = ['ronella', 'simple-keytool', 'keytool', 'java', 'cacert', 'automation',
+    tags = ['ronella', 'simple-keytool', 'simple', 'keytool', 'java', 'cacert', 'automation',
             'certificate management', 'management', 'security']
 }
 
