@@ -4,6 +4,7 @@ plugins {
     id 'java-gradle-plugin'
     id "com.gradle.plugin-publish" version "1.0.0-rc-1"
     id 'maven-publish'
+    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
 ext {
@@ -12,6 +13,18 @@ ext {
 }
 
 sourceCompatibility = 1.11
+
+configurations {
+    plugin
+    implementation.extendsFrom(plugin)
+}
+
+shadowJar {
+    configurations = [project.configurations.plugin]
+    archiveClassifier.set("")
+    relocate 'xyz.ronella.trivial', "${project.group}.shadow.trivial"
+    relocate 'xyz.ronella.command.arrays', "${project.group}.shadow.command.arrays"
+}
 
 pluginBundle {
     website = 'https://github.com/rcw3bb/simple-keytool'
@@ -58,12 +71,7 @@ repositories {
                 releasesOnly()
             }
         }
-        maven {
-            url 'https://repo.ronella.xyz/archiva/repository/snapshots/'
-            credentials {
-                username "${archivaUsername}"
-                password "${archivaPassword}"
-            }
+        mavenLocal {
             mavenContent {
                 snapshotsOnly()
             }
@@ -76,6 +84,9 @@ repositories {
 }
 
 dependencies {
+    plugin 'xyz.ronella.casual:trivial-chunk:2.10.0-SNAPSHOT'
+    plugin 'xyz.ronella.casual:command-arrays:1.0.0-SNAPSHOT'
+
     implementation gradleApi()
     implementation localGroovy()
 
@@ -85,6 +96,9 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:4.4.0'
     testImplementation 'org.mockito:mockito-inline:4.4.0'
 }
+
+jar.enabled = false
+jar.dependsOn shadowJar
 
 test {
     useJUnitPlatform()
