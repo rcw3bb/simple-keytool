@@ -1,11 +1,14 @@
 package xyz.ronella.gradle.plugin.simple.keytool;
 
 import xyz.ronella.gradle.plugin.simple.keytool.tool.CommandOutputFilter;
-import xyz.ronella.gradle.plugin.simple.keytool.tool.CommandRunner;
-import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType;
+import xyz.ronella.trivial.handy.CommandRunner;
+import xyz.ronella.trivial.handy.NoCommandException;
+import xyz.ronella.trivial.handy.OSType;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,7 +70,18 @@ public final class KeytoolExecutor {
 
     private File getExecutableAuto() {
         var sbFQFN = new StringBuilder();
-        CommandRunner.runCommand((___exitCode, ___output) -> sbFQFN.append(___output.get(CommandRunner.Output.STD)),"where", EXECUTABLE);
+
+        try {
+            CommandRunner.runCommand((___output, ___error) -> {
+                try(var output = new BufferedReader(new InputStreamReader(___output)))  {
+                    sbFQFN.append(output.lines().collect(Collectors.joining("\n")));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }, "where", EXECUTABLE);
+        } catch (NoCommandException e) {
+            throw new RuntimeException(e);
+        }
 
         var fqfn = sbFQFN.toString();
 
@@ -333,17 +347,28 @@ public final class KeytoolExecutor {
 
     private void runCommand(String ... commands) {
         if (!isNoop) {
-            CommandRunner.runCommand((___exitCode, ___output) -> {
-                var errorText = ___output.get(CommandRunner.Output.ERR);
-                var outputText = ___output.get(CommandRunner.Output.STD);
+            int exitCode;
+            try {
 
-                nonBlankText(outputText, System.out::println);
-                nonBlankText(errorText, System.err::println);
+                exitCode = CommandRunner.runCommand((___output, ___error) -> {
+                    try(var output = new BufferedReader(new InputStreamReader(___output));
+                        var error = new BufferedReader(new InputStreamReader(___error))) {
+                        var errorText = error.lines().collect(Collectors.joining("\n"));
+                        var outputText = output.lines().collect(Collectors.joining("\n"));;
 
-                if (___exitCode != 0) {
-                    throw new KeytoolTaskExecutionException("Error performing the task.");
-                }
-            }, commands);
+                        nonBlankText(outputText, System.out::println);
+                        nonBlankText(errorText, System.err::println);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }, commands);
+            } catch (NoCommandException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (exitCode != 0) {
+                throw new KeytoolTaskExecutionException("Error performing the task.");
+            }
         }
     }
 

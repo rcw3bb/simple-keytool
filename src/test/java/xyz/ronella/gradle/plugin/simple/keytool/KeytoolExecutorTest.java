@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
-import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.PSCommandDecoder;
+import xyz.ronella.trivial.handy.OSType;
 
 import java.nio.file.Paths;
 import java.util.function.Supplier;

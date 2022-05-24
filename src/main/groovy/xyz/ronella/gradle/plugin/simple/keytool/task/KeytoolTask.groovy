@@ -7,12 +7,12 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import xyz.ronella.command.arrays.windows.RunAsChecker
 import xyz.ronella.gradle.plugin.simple.keytool.KeytoolExecutor
 import xyz.ronella.gradle.plugin.simple.keytool.SimpleKeytoolPluginExtension
 import xyz.ronella.gradle.plugin.simple.keytool.args.ArgumentManager
 import xyz.ronella.gradle.plugin.simple.keytool.args.IDirArg
-import xyz.ronella.gradle.plugin.simple.keytool.tool.OSType
-import xyz.ronella.gradle.plugin.simple.keytool.tool.RunAsChecker
+import xyz.ronella.trivial.handy.OSType
 
 /**
  * The main keytool task implementation that holds the default behaviour.
