@@ -4,6 +4,7 @@ import xyz.ronella.gradle.plugin.simple.keytool.tool.CommandOutputFilter;
 import xyz.ronella.trivial.handy.CommandRunner;
 import xyz.ronella.trivial.handy.NoCommandException;
 import xyz.ronella.trivial.handy.OSType;
+import xyz.ronella.trivial.handy.impl.CommandArray;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -236,7 +237,7 @@ public final class KeytoolExecutor {
         else {
             throw new KeytoolNoCommandException("Command(s) not found");
         }
-        return isAdminMode ? Arrays.asList(sbArgs.toString()) : scriptCommands;
+        return isAdminMode ? List.of(sbArgs.toString()) : scriptCommands;
     }
 
     private List<String> adminModeScript(List<String> commands) {
@@ -283,13 +284,13 @@ public final class KeytoolExecutor {
     }
 
     private List<String> commandToRun(String executable, List<String> allArgs) {
-        var commandToRun = new ArrayList<String>();
-        commandToRun.add(executable.contains(" ") ? quote(executable) : executable);
-        commandToRun.addAll(allArgs.stream()
-                .map(___arg -> ___arg.contains(" ") ? quote(___arg) : ___arg)
-                .collect(Collectors.toList())
-        );
-        return commandToRun;
+        var commandToRun = CommandArray.getBuilder()
+                .setCommand(executable.contains(" ") ? quote(executable) : executable)
+                .addArgs(() -> allArgs.size()> 0, allArgs.stream()
+                        .map(___arg -> ___arg.contains(" ") ? quote(___arg) : ___arg)
+                        .collect(Collectors.toList()))
+                .build();
+        return commandToRun.getCommandAsList();
     }
 
     private void finalizedCommand(List<String> fullCommand, String executable, List<String> allArgs) {
@@ -349,12 +350,11 @@ public final class KeytoolExecutor {
         if (!isNoop) {
             int exitCode;
             try {
-
                 exitCode = CommandRunner.runCommand((___output, ___error) -> {
                     try(var output = new BufferedReader(new InputStreamReader(___output));
                         var error = new BufferedReader(new InputStreamReader(___error))) {
+                        var outputText = output.lines().collect(Collectors.joining("\n"));
                         var errorText = error.lines().collect(Collectors.joining("\n"));
-                        var outputText = output.lines().collect(Collectors.joining("\n"));;
 
                         nonBlankText(outputText, System.out::println);
                         nonBlankText(errorText, System.err::println);
