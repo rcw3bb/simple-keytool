@@ -1,5 +1,6 @@
 package xyz.ronella.gradle.plugin.simple.keytool;
 
+import xyz.ronella.command.arrays.windows.PowerShell;
 import xyz.ronella.gradle.plugin.simple.keytool.tool.CommandOutputFilter;
 import xyz.ronella.trivial.handy.CommandRunner;
 import xyz.ronella.trivial.handy.NoCommandException;
@@ -10,7 +11,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -126,32 +126,6 @@ public final class KeytoolExecutor {
         throw new KeytoolExecutableException();
     }
 
-    private List<String> getPowershellArgs() {
-        var shellArgs = new ArrayList<String>();
-        shellArgs.add("-NoProfile");
-        shellArgs.add("-InputFormat");
-        shellArgs.add("None");
-        shellArgs.add("-ExecutionPolicy");
-        shellArgs.add("Bypass");
-
-        return new ArrayList<>(shellArgs);
-    }
-
-    private List<String> getPowershellCommand() {
-        var shellCommand = new ArrayList<String>();
-        shellCommand.add("powershell.exe");
-        shellCommand.addAll(getPowershellArgs());
-        shellCommand.add("-EncodedCommand");
-
-        return new ArrayList<>(shellCommand);
-    }
-
-    private List<String> getScriptLines() {
-        var script = new ArrayList<String>();
-        script.add("$ProgressPreference = 'SilentlyContinue'");
-        return new ArrayList<>(script);
-    }
-
     private String tripleQuote(String text) {
         return String.format("\"\"\"%s\"\"\"", text);
     }
@@ -225,62 +199,57 @@ public final class KeytoolExecutor {
     }
 
     private List<String> buildScript(String executable, List<String> allArgs) {
-        var sbArgs = new StringBuilder();
-        getPowershellArgs().forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
+        var psBuilder = PowerShell.getBuilder()
+                .enableDefaultArgs(true)
+                .suppressProgramName(true);
 
         var scriptCommands = createScriptCommands(executable, allArgs);
 
         if (scriptCommands.size()>0) {
-            sbArgs.append(",").append(tripleQuote("-Command"));
-            sbArgs.append(",").append(String.format("{%n%s%n}", String.join("\n", scriptCommands)));
+            psBuilder.addArg("-Command")
+                    .addArg(String.format("{%n%s%n}", String.join("\n", scriptCommands)));
         }
         else {
             throw new KeytoolNoCommandException("Command(s) not found");
         }
-        return isAdminMode ? List.of(sbArgs.toString()) : scriptCommands;
+
+        var ps = psBuilder.build();
+        var psCommand = ps.getCommandAsList().stream()
+                .map(___arg -> ___arg.startsWith("{") ? ___arg: tripleQuote(___arg))
+                .collect(Collectors.joining(","));
+
+        return isAdminMode ? List.of(psCommand) : scriptCommands;
     }
 
+
     private List<String> adminModeScript(List<String> commands) {
-        return adminModeCommand("powershell.exe", null, commands);
+        return buildAdminCommand("powershell.exe", null, commands);
     }
 
     private List<String> adminModeCommand(String executable, List<String> allArgs) {
-        return adminModeCommand(executable, allArgs, null);
+        return buildAdminCommand(executable, allArgs, null);
     }
 
-    private List<String> completeAdminCommand(List<String> scriptLines) {
-        var fullCommand = getPowershellCommand();
-        var script = String.join("\n", scriptLines);
-        var encodedCommand = Base64.getEncoder().encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
-
-        fullCommand.add(encodedCommand);
-
-        return fullCommand;
-    }
-
-    private String buildAdminCommand(String executable, List<String> allArgs, List<String> commands) {
-        var sbArgs = new StringBuilder();
+    private List<String> buildAdminCommand(String executable, List<String> allArgs, List<String> commands) {
+        var cmdBuilder = PowerShell.getBuilder()
+                .enableDefaultArgs(true)
+                .setAdminMode(true)
+                .setPreferNonAdminMode(true)
+                .addAdminHeader("$ProgressPreference = 'SilentlyContinue'");
 
         if (null!=allArgs) {
-            allArgs.forEach(___arg -> sbArgs.append(sbArgs.length()>0 ? ",": "").append(tripleQuote(___arg)));
+            cmdBuilder.setCommand(executable);
+            allArgs.forEach(cmdBuilder::addArg);
         }
 
         if (null!=commands) {
-            commands.forEach(sbArgs::append);
+            cmdBuilder.setRawArgs(true);
+            commands.forEach(cmdBuilder::addArg);
         }
 
-        return String.format("Exit (Start-Process %s -Wait -PassThru -Verb RunAs%s%s).ExitCode",
-                quote(executable), (sbArgs.length() == 0 ? "" : " -argumentlist "), sbArgs);
-    }
+        var adminCommand = cmdBuilder.build();
 
-    private List<String> adminModeCommand(String executable, List<String> allArgs, List<String> commands) {
-        var scriptLines = getScriptLines();
-        var sbActualCommand = buildAdminCommand(executable, allArgs, commands);
-
-        var command = String.join(" ", sbActualCommand);
-        scriptLines.add(command);
-
-        return completeAdminCommand(scriptLines);
+        return adminCommand.getCommandAsList();
     }
 
     private List<String> commandToRun(String executable, List<String> allArgs) {
@@ -319,6 +288,7 @@ public final class KeytoolExecutor {
             System.out.println(CommandOutputFilter.filter(fullCommand, "\n"));
         }
         else {
+            //This is just for logging the command to run.
             var commandToRun = commandToRun(executable, allArgs);
             System.out.println(CommandOutputFilter.filter(commandToRun));
         }
