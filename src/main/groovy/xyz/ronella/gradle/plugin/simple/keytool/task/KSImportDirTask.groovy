@@ -18,6 +18,7 @@ abstract class KSImportDirTask extends KeytoolTask
         super()
         description = 'Convenience task to import certificates from a directory to a keystore.'
         internalCommand.convention('-importcert')
+        internalArgs.set(['-noprompt'])
         isAdminMode.convention(true)
         isScriptMode.convention(true)
     }

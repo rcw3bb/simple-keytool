@@ -28,7 +28,7 @@ class CACertsImportTaskTest {
     void noCommandParam() {
         var script = project.tasks.cacertsImport.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-storepass"""'))
+        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-noprompt""","""-storepass"""'))
     }
 
     @Test
@@ -36,7 +36,7 @@ class CACertsImportTaskTest {
         project.tasks.cacertsImport.verbose=true
         var script = project.tasks.cacertsImport.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-v""","""-storepass"""'))
+        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-noprompt""","""-v""","""-storepass"""'))
     }
 
     @Test
@@ -44,7 +44,7 @@ class CACertsImportTaskTest {
         project.tasks.cacertsImport.alias='alias'
         var script = project.tasks.cacertsImport.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-alias""","""alias""","""-storepass"""'))
+        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-noprompt""","""-alias""","""alias""","""-storepass"""'))
     }
 
     @Test
@@ -52,7 +52,7 @@ class CACertsImportTaskTest {
         project.tasks.cacertsImport.storeType='storeType'
         var script = project.tasks.cacertsImport.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-storetype""","""storeType""","""-storepass""'))
+        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-noprompt""","""-storetype""","""storeType""","""-storepass""'))
     }
 
     @Test
@@ -61,7 +61,7 @@ class CACertsImportTaskTest {
         project.tasks.cacertsImport.keyPass='password'
         var script = project.tasks.cacertsImport.executeCommand()
         var command = PSCommandDecoder.decode(script)
-        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-keypass""","""password""","""-storetype""","""storeType""","""-storepass""'))
+        assertTrue(command.contains('"""-importcert""","""-cacerts""","""-noprompt""","""-keypass""","""password""","""-storetype""","""storeType""","""-storepass""'))
     }
 
     @Test
