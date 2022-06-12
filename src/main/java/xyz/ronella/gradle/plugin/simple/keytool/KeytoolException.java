@@ -10,6 +10,8 @@ import org.gradle.api.GradleException;
  */
 public class KeytoolException extends GradleException {
 
+    private static final long serialVersionUID = -5914444361318429376L;
+
     /**
      * Creates an instance of KeytoolException.
      */
@@ -22,7 +24,7 @@ public class KeytoolException extends GradleException {
      *
      * @param message The message of the exception.
      */
-    public KeytoolException(String message) {
+    public KeytoolException(final String message) {
         super(message);
     }
 }

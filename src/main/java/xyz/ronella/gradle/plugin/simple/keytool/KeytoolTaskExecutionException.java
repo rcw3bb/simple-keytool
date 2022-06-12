@@ -8,12 +8,14 @@ package xyz.ronella.gradle.plugin.simple.keytool;
  */
 public class KeytoolTaskExecutionException extends KeytoolException {
 
+    private static final long serialVersionUID = -8209044682550556478L;
+
     /**
      * Creates an instance of KeytoolTaskExecutionException.
      *
      * @param message Accepts a custom message.
      */
-    public KeytoolTaskExecutionException(String message) {
+    public KeytoolTaskExecutionException(final String message) {
         super(message);
     }
 }

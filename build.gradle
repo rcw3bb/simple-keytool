@@ -5,6 +5,7 @@ plugins {
     id "com.gradle.plugin-publish" version "1.0.0-rc-1"
     id 'maven-publish'
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id 'pmd'
 }
 
 ext {
@@ -38,6 +39,14 @@ pluginBundle {
     description = pluginDescription
     tags = ['ronella', 'simple-keytool', 'simple', 'keytool', 'java', 'cacert', 'automation',
             'certificate management', 'management', 'security']
+}
+
+pmd {
+    consoleOutput = true
+    toolVersion = "6.45.0"
+    rulesMinimumPriority = 5
+    ruleSetFiles = files('config/pmd/java/custom.xml')
+    ruleSets = []
 }
 
 gradlePlugin {
@@ -90,8 +99,8 @@ repositories {
 }
 
 dependencies {
-    plugin 'xyz.ronella.casual:trivial-chunk:2.10.0-SNAPSHOT'
-    plugin 'xyz.ronella.casual:command-arrays:1.0.0-SNAPSHOT'
+    plugin 'xyz.ronella.casual:trivial-chunk:2.10.0'
+    plugin 'xyz.ronella.casual:command-arrays:1.0.0'
 
     implementation gradleApi()
     implementation localGroovy()
@@ -103,9 +112,14 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:4.4.0'
 }
 
-jar.enabled = false
-jar.dependsOn shadowJar
+pmdTest.enabled = false
+
+jar {
+    enabled = false
+    dependsOn shadowJar
+}
 
 test {
+    dependsOn pmdMain
     useJUnitPlatform()
 }

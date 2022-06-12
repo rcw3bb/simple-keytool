@@ -8,10 +8,6 @@ package xyz.ronella.gradle.plugin.simple.keytool;
  */
 public class KeytoolExecutableException extends KeytoolException {
 
-    /**
-     * Creates an instance of KeytoolExecutableException.
-     */
-    public KeytoolExecutableException() {
-        super();
-    }
+    private static final long serialVersionUID = -663092048064808561L;
+
 }

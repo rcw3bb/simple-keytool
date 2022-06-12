@@ -1,0 +1,54 @@
+<ruleset name="Custom Rules"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        Custom Rules
+    </description>
+
+    <exclude-pattern>.*/KeytoolExecutor.*</exclude-pattern>
+
+    <rule ref="category/java/bestpractices.xml" />
+    <rule ref="category/java/codestyle.xml" >
+        <exclude name="FormalParameterNamingConventions"/>
+        <exclude name="LinguisticNaming"/>
+    </rule>
+    <rule ref="category/java/design.xml" >
+        <exclude name="TooManyMethods"/>
+        <exclude name="LawOfDemeter"/>
+        <exclude name="LoosePackageCoupling"/>
+    </rule>
+    <rule ref="category/java/design.xml/ExcessiveMethodLength">
+        <properties>
+            <property name="minimum" value="30" />
+        </properties>
+    </rule>
+    <rule ref="category/java/design.xml/ExcessiveParameterList">
+        <properties>
+            <property name="minimum" value="5" />
+        </properties>
+    </rule>
+    <rule ref="category/java/documentation.xml">
+        <exclude name="CommentSize"/>
+    </rule>
+    <rule ref="category/java/documentation.xml/CommentRequired">
+        <properties>
+            <property name="methodWithOverrideCommentRequirement" value="Ignored" />
+            <property name="accessorCommentRequirement" value="Ignored" />
+            <property name="classCommentRequirement" value="Required" />
+            <property name="fieldCommentRequirement" value="Ignored" />
+            <property name="publicMethodCommentRequirement" value="Required" />
+            <property name="protectedMethodCommentRequirement" value="Required" />
+            <property name="enumCommentRequirement" value="Required" />
+            <property name="serialVersionUIDCommentRequired" value="Ignored" />
+            <property name="serialPersistentFieldsCommentRequired" value="Ignored" />
+        </properties>
+    </rule>
+    <rule ref="category/java/errorprone.xml">
+        <exclude name="BeanMembersShouldSerialize"/>
+    </rule>
+    <rule ref="category/java/multithreading.xml" />
+    <rule ref="category/java/performance.xml" />
+    <rule ref="category/java/security.xml" />
+</ruleset>
