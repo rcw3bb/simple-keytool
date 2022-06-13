@@ -33,6 +33,7 @@ shadowJar {
     archiveClassifier.set("")
     relocate 'xyz.ronella.trivial', "${project.group}.shadow.trivial"
     relocate 'xyz.ronella.command.arrays', "${project.group}.shadow.command.arrays"
+    minimize()
 }
 
 pluginBundle {
@@ -49,6 +50,10 @@ pmd {
     rulesMinimumPriority = 5
     ruleSetFiles = files('config/pmd/custom.xml')
     ruleSets = []
+}
+
+codenarc {
+    toolVersion = "3.1.0"
 }
 
 gradlePlugin {
