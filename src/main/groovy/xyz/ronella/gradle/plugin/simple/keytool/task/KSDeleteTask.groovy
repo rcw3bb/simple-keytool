@@ -1,7 +1,6 @@
 package xyz.ronella.gradle.plugin.simple.keytool.task
 
 import xyz.ronella.gradle.plugin.simple.keytool.args.IAliasRequiredArg
-import xyz.ronella.gradle.plugin.simple.keytool.args.IKeyPassArg
 import xyz.ronella.gradle.plugin.simple.keytool.args.IKeyStoreArg
 import xyz.ronella.gradle.plugin.simple.keytool.args.IStorePassArg
 import xyz.ronella.gradle.plugin.simple.keytool.args.IStoreTypeArg

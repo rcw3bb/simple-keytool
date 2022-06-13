@@ -6,6 +6,7 @@ plugins {
     id 'maven-publish'
     id "com.github.johnrengelman.shadow" version "7.1.2"
     id 'pmd'
+    id 'codenarc'
 }
 
 ext {
@@ -43,7 +44,7 @@ pluginBundle {
 
 pmd {
     consoleOutput = true
-    toolVersion = "6.45.0"
+    toolVersion = "6.46.0"
     rulesMinimumPriority = 5
     ruleSetFiles = files('config/pmd/java/custom.xml')
     ruleSets = []
@@ -113,6 +114,7 @@ dependencies {
 }
 
 pmdTest.enabled = false
+codenarcTest.enabled = false
 
 jar {
     enabled = false
@@ -120,6 +122,6 @@ jar {
 }
 
 test {
-    dependsOn pmdMain
+    dependsOn pmdMain, codenarcMain
     useJUnitPlatform()
 }

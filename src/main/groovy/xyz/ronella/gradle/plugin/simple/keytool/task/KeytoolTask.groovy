@@ -83,13 +83,13 @@ abstract class KeytoolTask extends DefaultTask {
         description = 'Executes any valid java keytool command.'
 
         args.convention([])
-        getZArgs().convention([])
+        ZArgs.convention([])
 
         var objects = project.objects
-        isScriptMode = objects.property(Boolean.class)
-        internalArgs = objects.listProperty(String.class)
-        internalZArgs = objects.listProperty(String.class)
-        internalCommand = objects.property(String.class)
+        isScriptMode = objects.property(Boolean)
+        internalArgs = objects.listProperty(String)
+        internalZArgs = objects.listProperty(String)
+        internalCommand = objects.property(String)
 
         isAdminMode.convention(false)
         isScriptMode.convention(false)
@@ -100,21 +100,21 @@ abstract class KeytoolTask extends DefaultTask {
 
         ArgumentManager.processArgs(this, internalArgs, EXTENSION)
 
-        def newArgs = new ArrayList<String>()
+        def newArgs = []
         newArgs.addAll(internalArgs.get())
         newArgs.addAll(args.get())
         newArgs.addAll(internalZArgs.get())
-        newArgs.addAll(getZArgs().get())
+        newArgs.addAll(ZArgs.get())
 
-        def allTheArgs = project.objects.listProperty(String.class)
-        if ((command.getOrElse("").length()>0 || newArgs.size() > 0)) {
+        def allTheArgs = project.objects.listProperty(String)
+        if ((command.getOrElse('').length()>0 || newArgs.size() > 0)) {
             allTheArgs.addAll(newArgs)
         }
         else {
             allTheArgs.add('--help')
         }
 
-        return allTheArgs
+        return allTheArgs //codenarc-disable UnnecessaryReturnKeyword
     }
 
     /**
@@ -124,21 +124,21 @@ abstract class KeytoolTask extends DefaultTask {
      */
     @TaskAction
     String executeCommand() {
-        var builder = KeytoolExecutor.getBuilder()
+        var builder = KeytoolExecutor.builder
                 .addNoop(EXTENSION.noop.getOrElse(false))
                 .addOSType(OSType.identify())
-                .addJavaHome(javaHome.getOrElse(EXTENSION.javaHome.getOrNull()))
+                .addJavaHome(javaHome.getOrElse(EXTENSION.javaHome.orNull))
                 .addAdminMode(isAdminMode.get())
-                .addCommand(internalCommand.isPresent() ? internalCommand.get() : command.getOrNull())
+                .addCommand(internalCommand.present ? internalCommand.get() : command.orNull)
                 .addArgs(allArgs.get().toArray((String[])[]))
-                .addRunningInAdminMode(RunAsChecker.isElevatedMode())
+                .addRunningInAdminMode(RunAsChecker.elevatedMode)
                 .addScriptMode(isScriptMode.get())
                 .addDirAliasPrefix(EXTENSION.dirAliasPrefix.get())
                 .addDirAliasSuffix(EXTENSION.dirAliasSuffix.get())
 
         if (this instanceof IDirArg) {
             var dirArg = (IDirArg) this
-            builder.addDirectory(dirArg.dir.asFile.getOrNull())
+            builder.addDirectory(dirArg.dir.asFile.orNull)
             builder.addFileArgs(dirArg.fileArgs.getOrElse(Collections.emptyMap()))
         }
 
@@ -146,10 +146,10 @@ abstract class KeytoolTask extends DefaultTask {
 
         var command = executor.execute()
         if (EXTENSION.showExecCode.getOrElse(false)) {
-            println "Command executed: ${command}"
+            println "Command executed: ${command}" // codenarc-disable Println
         }
 
-        return command
+        return command //codenarc-disable UnnecessaryReturnKeyword
 
     }
 }
