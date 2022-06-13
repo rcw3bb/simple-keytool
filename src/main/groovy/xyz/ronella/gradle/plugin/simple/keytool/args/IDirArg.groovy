@@ -19,7 +19,7 @@ interface IDirArg {
      *
      * @return A keystore file.
      */
-    @InputDirectory
+    @Optional @InputDirectory
     DirectoryProperty getDir()
 
     /**

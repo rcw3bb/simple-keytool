@@ -19,6 +19,7 @@ abstract class KSListDirTask extends KeytoolTask
         description = 'Convenience task to display the keystore content based on a directory.'
         internalCommand.convention('-list')
         isScriptMode.convention(true)
+        fileArgs.convention((Map<String, List<String>>) null)
     }
 
 }

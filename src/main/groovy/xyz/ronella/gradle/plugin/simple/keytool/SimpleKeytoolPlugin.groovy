@@ -12,10 +12,19 @@ import xyz.ronella.gradle.plugin.simple.keytool.task.*
  */
 class SimpleKeytoolPlugin implements Plugin<Project> {
 
-    @Override
-    void apply(Project project) {
+    private static void initExtension(Project project) {
         project.with {
             extensions.create('simple_keytool', SimpleKeytoolPluginExtension)
+            extensions.getByType(SimpleKeytoolPluginExtension).with {
+                storePass.convention('changeit')
+                dirAliasPrefix.convention('')
+                dirAliasSuffix.convention('[sk]')
+            }
+        }
+    }
+
+    private static void initTasks(Project project) {
+        project.with {
             task('cacertsDelete', type:CACertsDeleteTask)
             task('cacertsDeleteDir', type:CACertsDeleteDirTask)
             task('cacertsImport', type:CACertsImportTask)
@@ -30,6 +39,12 @@ class SimpleKeytoolPlugin implements Plugin<Project> {
             task('ksList', type:KSListTask)
             task('ksListDir', type:KSListDirTask)
         }
+    }
+
+    @Override
+    void apply(Project project) {
+        initExtension(project)
+        initTasks(project)
     }
 
 }

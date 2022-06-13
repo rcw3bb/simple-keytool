@@ -138,8 +138,12 @@ abstract class KeytoolTask extends DefaultTask {
 
         if (this instanceof IDirArg) {
             var dirArg = (IDirArg) this
-            builder.addDirectory(dirArg.dir.asFile.orNull)
-            builder.addFileArgs(dirArg.fileArgs.getOrElse(Collections.emptyMap()))
+            var certsDir = dirArg.dir.asFile.orNull
+            builder.addDirectory(certsDir==null ? EXTENSION.defaultCertsDir.asFile.orNull : certsDir)
+            var fileArgs = dirArg.fileArgs
+            //codenarc-disable UnnecessaryGetter
+            builder.addFileArgs(fileArgs.isPresent() ? fileArgs.get() : EXTENSION.defaultFileArgs.get())
+            //codenarc-enable UnnecessaryGetter
         }
 
         var executor = builder.build()

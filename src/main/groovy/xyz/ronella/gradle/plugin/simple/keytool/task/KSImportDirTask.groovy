@@ -21,6 +21,7 @@ abstract class KSImportDirTask extends KeytoolTask
         internalArgs.set(['-noprompt'])
         isAdminMode.convention(true)
         isScriptMode.convention(true)
+        fileArgs.convention((Map<String, List<String>>) null)
     }
 
 }

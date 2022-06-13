@@ -21,5 +21,6 @@ abstract class CACertsDeleteDirTask extends KeytoolTask
         internalArgs.set(['-cacerts'])
         isAdminMode.convention(true)
         isScriptMode.convention(true)
+        fileArgs.convention((Map<String, List<String>>) null)
     }
 }

@@ -20,5 +20,6 @@ abstract class KSDeleteDirTask extends KeytoolTask
         internalCommand.convention('-delete')
         isAdminMode.convention(true)
         isScriptMode.convention(true)
+        fileArgs.convention((Map<String, List<String>>) null)
     }
 }

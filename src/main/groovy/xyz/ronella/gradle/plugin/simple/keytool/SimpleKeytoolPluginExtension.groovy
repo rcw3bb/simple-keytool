@@ -1,5 +1,7 @@
 package xyz.ronella.gradle.plugin.simple.keytool
 
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 
 /**
@@ -54,12 +56,19 @@ abstract class SimpleKeytoolPluginExtension {
     abstract Property<String> getDirAliasSuffix()
 
     /**
-     * Create an instance of SimpleKeytoolPluginExtension.
+     * Must hold the default fileArgs that the directory based task can use.
+     *
+     * @return The file args.
+     * @since 1.1.0
      */
-    SimpleKeytoolPluginExtension() {
-        storePass.convention('changeit')
-        dirAliasPrefix.convention('')
-        dirAliasSuffix.convention('[sk]')
-    }
+    abstract MapProperty<String, List<String>> getDefaultFileArgs()
+
+    /**
+     * Must hold the default certificates directory that the directory based task can use.
+     *
+     * @return The file args.
+     * @since 1.1.0
+     */
+    abstract DirectoryProperty getDefaultCertsDir()
 
 }

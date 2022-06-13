@@ -20,6 +20,7 @@ abstract class CACertsListDirTask extends KeytoolTask
         internalCommand.convention('-list')
         internalArgs.set(['-cacerts'])
         isScriptMode.convention(true)
+        fileArgs.convention((Map<String, List<String>>) null)
     }
 
 }

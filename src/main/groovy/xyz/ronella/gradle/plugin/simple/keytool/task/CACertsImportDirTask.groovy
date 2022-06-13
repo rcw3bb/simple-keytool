@@ -21,6 +21,7 @@ abstract class CACertsImportDirTask extends KeytoolTask
         internalArgs.set(['-cacerts', '-noprompt'])
         isAdminMode.convention(true)
         isScriptMode.convention(true)
+        fileArgs.convention((Map<String, List<String>>) null)
     }
 
 }

@@ -208,7 +208,7 @@ public final class KeytoolExecutor {
         final var scriptCommands = createScriptCommands(executable, allArgs);
 
         if (scriptCommands.isEmpty()) {
-            throw new KeytoolNoCommandException("Command(s) not found");
+            throw new KeytoolNoCommandException("No command(s) to execute.");
         }
         else {
             psBuilder.addArg("literal:-Command")
