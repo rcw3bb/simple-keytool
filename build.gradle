@@ -7,6 +7,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
     id 'pmd'
     id 'codenarc'
+    id 'jacoco'
 }
 
 ext {
@@ -46,7 +47,7 @@ pmd {
     consoleOutput = true
     toolVersion = "6.46.0"
     rulesMinimumPriority = 5
-    ruleSetFiles = files('config/pmd/java/custom.xml')
+    ruleSetFiles = files('config/pmd/custom.xml')
     ruleSets = []
 }
 
@@ -123,5 +124,10 @@ jar {
 
 test {
     dependsOn pmdMain, codenarcMain
+    finalizedBy jacocoTestReport
     useJUnitPlatform()
+}
+
+jacocoTestReport {
+    dependsOn test
 }
