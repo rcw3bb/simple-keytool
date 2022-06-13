@@ -13,7 +13,7 @@ In your **build.gradle** file add the following plugin:
 
 ```groovy
 plugins {
-    id "xyz.ronella.simple-keytool" version "1.0.1"
+    id "xyz.ronella.simple-keytool" version "1.1.0"
 }
 ```
 
@@ -47,6 +47,8 @@ plugins {
 
 | Property | Description | Type | Default |
 |-----|------|------|-----|
+| simple_keytool.defaultCertsDir | Holds the **default certificates directory** that all the tasks that operate in directory uses unless overridden by its own dir property. | File |  |
+| simple_keytool.defaultFileArgs | Holds the **default file arguments** that al the tasks that operate in directory uses unless overridden by its own fileArgs property. | Map<String, List<String>> | Empty |
 | simple_keytool.dirAliasPrefix | Holds the **desired prefix of the alias** of the convenience tasks that process directory. The alias parameter can be overridden by the file specific arguments. | String |  |
 | simple_keytool.dirAliasSuffix | Holds the **desired suffix of the alias** of the convenience tasks that process directory. The alias parameter can be overridden by the file specific arguments. | String | [sk] |
 | simple_keytool.javaHome | Holds the **location of the java JDK** to use by all the of the convenience tasks. | File |  |
@@ -195,7 +197,7 @@ cacertsImportDir {
 
 ``` groovy
 plugins {
-  id "xyz.ronella.simple-keytool" version "1.0.1"
+  id "xyz.ronella.simple-keytool" version "1.1.0"
 }
 
 task cacertRFCList(type: CACertsListTask) {
