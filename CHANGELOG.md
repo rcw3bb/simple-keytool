@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 : 2024-12-09
+
+### Minor Change
+
+* Make the shadow package part of the plugin package.
+
 ## 1.1.0 : 2022-06-14
 
 ### New

@@ -13,7 +13,7 @@ In your **build.gradle** file add the following plugin:
 
 ```groovy
 plugins {
-    id "xyz.ronella.simple-keytool" version "1.1.0"
+    id "xyz.ronella.simple-keytool" version "1.1.1"
 }
 ```
 
@@ -197,7 +197,7 @@ cacertsImportDir {
 
 ``` groovy
 plugins {
-  id "xyz.ronella.simple-keytool" version "1.1.0"
+  id "xyz.ronella.simple-keytool" version "1.1.1"
 }
 
 task cacertRFCList(type: CACertsListTask) {
