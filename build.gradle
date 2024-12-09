@@ -31,8 +31,8 @@ configurations {
 shadowJar {
     configurations = [project.configurations.plugin]
     archiveClassifier.set("")
-    relocate 'xyz.ronella.trivial', "${project.group}.shadow.trivial"
-    relocate 'xyz.ronella.command.arrays', "${project.group}.shadow.command.arrays"
+    relocate 'xyz.ronella.trivial', "${project.group}.simple.keytool.trivial"
+    relocate 'xyz.ronella.command.arrays', "${project.group}.simple.keytool.command.arrays"
     minimize()
 }
 
