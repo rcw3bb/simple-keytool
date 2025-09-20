@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 : 2025-09-21
+
+### New
+
+* Tested with Gradle 9.
+* Update the Java compatibility to 21.
+
 ## 1.1.1 : 2024-12-09
 
 ### Minor Change

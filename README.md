@@ -4,7 +4,7 @@ The plugin that allows you access to keytool commands inside gradle as task.
 
 # Pre-requisite
 
-* Java 11
+* Java 21
 * Windows 
 
 ## Plugging in the simple-keytool
@@ -13,7 +13,7 @@ In your **build.gradle** file add the following plugin:
 
 ```groovy
 plugins {
-    id "xyz.ronella.simple-keytool" version "1.1.1"
+    id "xyz.ronella.simple-keytool" version "1.2.0"
 }
 ```
 
@@ -197,7 +197,7 @@ cacertsImportDir {
 
 ``` groovy
 plugins {
-  id "xyz.ronella.simple-keytool" version "1.1.1"
+  id "xyz.ronella.simple-keytool" version "1.2.0"
 }
 
 task cacertRFCList(type: CACertsListTask) {

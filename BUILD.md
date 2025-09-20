@@ -2,7 +2,7 @@
 
 ## Pre-requisite
 
-* Java 11 for windows installed
+* Java 21 for windows installed
 
 ## Running Unit Test
 
@@ -22,3 +22,14 @@ gradlew jar
 
 > The **generated jar** file will be in the **libs directory** inside the **build directory** from where you've cloned the this repository.
 
+## Publishing
+
+Run the following command:
+
+```
+gradlew publishPlugins
+```
+
+This will be published to the following address:
+
+https://plugins.gradle.org/plugin/xyz.ronella.simple-keytool
