@@ -1,12 +1,17 @@
 package xyz.ronella.gradle.plugin.simple.keytool.task
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+
+import javax.inject.Inject
 import xyz.ronella.command.arrays.windows.RunAsChecker
 import xyz.ronella.gradle.plugin.simple.keytool.KeytoolExecutor
 import xyz.ronella.gradle.plugin.simple.keytool.SimpleKeytoolPluginExtension
@@ -22,7 +27,10 @@ import xyz.ronella.trivial.handy.OSType
  */
 abstract class KeytoolTask extends DefaultTask {
 
-    final protected SimpleKeytoolPluginExtension EXTENSION
+    protected Provider<SimpleKeytoolPluginExtension> extensionProvider
+
+    @Inject
+    abstract ObjectFactory getObjects()
 
     protected Property<String> internalCommand
 
@@ -76,16 +84,13 @@ abstract class KeytoolTask extends DefaultTask {
     /**
      * Creates an instance of the KeytoolTask.
      */
-    KeytoolTask() {
-        EXTENSION = project.extensions.simple_keytool
-
+    KeytoolTask() {        
         group = 'Simple Keytool'
         description = 'Executes any valid java keytool command.'
 
         args.convention([])
         ZArgs.convention([])
 
-        var objects = project.objects
         isScriptMode = objects.property(Boolean)
         internalArgs = objects.listProperty(String)
         internalZArgs = objects.listProperty(String)
@@ -94,11 +99,30 @@ abstract class KeytoolTask extends DefaultTask {
         isAdminMode.convention(false)
         isScriptMode.convention(false)
     }
+    
+    /**
+     * Configure the extension provider during task configuration (not construction)
+     */
+    void configureExtension(Project project) {
+        extensionProvider = project.provider { project.extensions.simple_keytool }
+    }
+
+    /**
+     * Get the extension provider, initializing it if necessary (fallback for direct task usage)
+     */
+    private Provider<SimpleKeytoolPluginExtension> getExtensionProviderSafe() { //codenarc-disable MethodName
+        if (extensionProvider == null) {
+            // Fallback: create provider directly from project (this will show deprecation warning)
+            // This should only happen if task is used outside of the plugin registration
+            logger.warn('Extension provider not configured. Task should be created through SimpleKeytoolPlugin.')
+            extensionProvider = project.provider { project.extensions.simple_keytool }
+        }
+        extensionProvider
+    }
 
     @Internal
     protected ListProperty<String> getAllArgs() {
-
-        ArgumentManager.processArgs(this, internalArgs, EXTENSION)
+        ArgumentManager.processArgs(this, internalArgs, getExtensionProviderSafe().get()) //codenarc-disable UnnecessaryGetter
 
         def newArgs = []
         newArgs.addAll(internalArgs.get())
@@ -106,7 +130,7 @@ abstract class KeytoolTask extends DefaultTask {
         newArgs.addAll(internalZArgs.get())
         newArgs.addAll(ZArgs.get())
 
-        def allTheArgs = project.objects.listProperty(String)
+        def allTheArgs = objects.listProperty(String)
         if ((command.getOrElse('').length()>0 || newArgs.size() > 0)) {
             allTheArgs.addAll(newArgs)
         }
@@ -124,32 +148,33 @@ abstract class KeytoolTask extends DefaultTask {
      */
     @TaskAction
     String executeCommand() {
+        var ext = getExtensionProviderSafe().get() //codenarc-disable UnnecessaryGetter
         var builder = KeytoolExecutor.builder
-                .addNoop(EXTENSION.noop.getOrElse(false))
+                .addNoop(ext.noop.getOrElse(false))
                 .addOSType(OSType.identify())
-                .addJavaHome(javaHome.getOrElse(EXTENSION.javaHome.orNull))
+                .addJavaHome(javaHome.getOrElse(ext.javaHome.orNull))
                 .addAdminMode(isAdminMode.get())
                 .addCommand(internalCommand.present ? internalCommand.get() : command.orNull)
                 .addArgs(allArgs.get().toArray((String[])[]))
                 .addRunningInAdminMode(RunAsChecker.elevatedMode)
                 .addScriptMode(isScriptMode.get())
-                .addDirAliasPrefix(EXTENSION.dirAliasPrefix.get())
-                .addDirAliasSuffix(EXTENSION.dirAliasSuffix.get())
+                .addDirAliasPrefix(ext.dirAliasPrefix.get())
+                .addDirAliasSuffix(ext.dirAliasSuffix.get())
 
         if (this instanceof IDirArg) {
             var dirArg = (IDirArg) this
             var certsDir = dirArg.dir.asFile.orNull
-            builder.addDirectory(certsDir==null ? EXTENSION.defaultCertsDir.asFile.orNull : certsDir)
+            builder.addDirectory(certsDir==null ? ext.defaultCertsDir.asFile.orNull : certsDir)
             var fileArgs = dirArg.fileArgs
             //codenarc-disable UnnecessaryGetter
-            builder.addFileArgs(fileArgs.isPresent() ? fileArgs.get() : EXTENSION.defaultFileArgs.get())
+            builder.addFileArgs(fileArgs.isPresent() ? fileArgs.get() : ext.defaultFileArgs.get())
             //codenarc-enable UnnecessaryGetter
         }
 
         var executor = builder.build()
 
         var command = executor.execute()
-        if (EXTENSION.showExecCode.getOrElse(false)) {
+        if (ext.showExecCode.getOrElse(false)) {
             println "Command executed: ${command}" // codenarc-disable Println
         }
 

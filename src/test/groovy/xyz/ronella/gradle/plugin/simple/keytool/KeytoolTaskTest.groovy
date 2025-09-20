@@ -92,4 +92,25 @@ class KeytoolTaskTest {
         assertTrue(command.endsWith('keytool.exe command arg1 arg2 zarg1 zarg2'))
     }
 
+    @Test
+    void testExtensionProviderFallback() {
+        // Create a task without plugin registration to test the null-safety mechanism
+        def project2 = ProjectBuilder.builder().build()
+        project2.pluginManager.apply 'xyz.ronella.simple-keytool'
+        project2.extensions.simple_keytool.noop = true
+        
+        // Create task directly without configureExtension() call
+        def task = project2.tasks.create('testTask', KeytoolTask)
+        
+        // This should work without throwing NullPointerException
+        // The fallback mechanism should handle the null extensionProvider
+        task.command = 'list'
+        def command = task.executeCommand()
+        
+        // Verify it works and falls back correctly
+        assertNotNull(command)
+        assertTrue(command.contains('keytool.exe'))
+        assertTrue(command.contains('list'))
+    }
+
 }

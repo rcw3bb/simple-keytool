@@ -25,19 +25,45 @@ class SimpleKeytoolPlugin implements Plugin<Project> {
 
     private static void initTasks(Project project) {
         project.with {
-            task('cacertsDelete', type:CACertsDeleteTask)
-            task('cacertsDeleteDir', type:CACertsDeleteDirTask)
-            task('cacertsImport', type:CACertsImportTask)
-            task('cacertsImportDir', type:CACertsImportDirTask)
-            task('cacertsList', type:CACertsListTask)
-            task('cacertsListDir', type:CACertsListDirTask)
-            task('keytoolTask', type:KeytoolTask)
-            task('ksDelete', type:KSDeleteTask)
-            task('ksDeleteDir', type:KSDeleteDirTask)
-            task('ksImport', type:KSImportTask)
-            task('ksImportDir', type:KSImportDirTask)
-            task('ksList', type:KSListTask)
-            task('ksListDir', type:KSListDirTask)
+            task('cacertsDelete', type:CACertsDeleteTask) {
+                it.configureExtension(project)
+            }
+            task('cacertsDeleteDir', type:CACertsDeleteDirTask) {
+                it.configureExtension(project)
+            }
+            task('cacertsImport', type:CACertsImportTask) {
+                it.configureExtension(project)
+            }
+            task('cacertsImportDir', type:CACertsImportDirTask) {
+                it.configureExtension(project)
+            }
+            task('cacertsList', type:CACertsListTask) {
+                it.configureExtension(project)
+            }
+            task('cacertsListDir', type:CACertsListDirTask) {
+                it.configureExtension(project)
+            }
+            task('keytoolTask', type:KeytoolTask) {
+                it.configureExtension(project)
+            }
+            task('ksDelete', type:KSDeleteTask) {
+                it.configureExtension(project)
+            }
+            task('ksDeleteDir', type:KSDeleteDirTask) {
+                it.configureExtension(project)
+            }
+            task('ksImport', type:KSImportTask) {
+                it.configureExtension(project)
+            }
+            task('ksImportDir', type:KSImportDirTask) {
+                it.configureExtension(project)
+            }
+            task('ksList', type:KSListTask) {
+                it.configureExtension(project)
+            }
+            task('ksListDir', type:KSListDirTask) {
+                it.configureExtension(project)
+            }
         }
     }
 
