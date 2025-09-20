@@ -26,6 +26,7 @@ import java.util.stream.Stream;
  * @author Ron Webb
  * @since 1.0.0
  */
+@SuppressWarnings({"PMD.GodClass", "PMD.SystemPrintln", "PMD.TooManyMethods", "PMD.AvoidThrowingRawExceptionTypes"})
 public final class KeytoolExecutor {
 
     /**
@@ -37,6 +38,11 @@ public final class KeytoolExecutor {
      * The keytool executable file.
      */
     public static final String EXEC = "keytool.exe";
+
+    /**
+     * The import certificate command.
+     */
+    private static final String IMPORT_CERT_CMD = "-importcert";
 
     private final List<Supplier<File>> executables;
     private final File javaHome;
@@ -74,7 +80,7 @@ public final class KeytoolExecutor {
         final var sbFQFN = new StringBuilder();
         try {
             CommandRunner.runCommand((___output, ___error) -> {
-                try(var output = new BufferedReader(new InputStreamReader(___output)))  {
+                try(var output = new BufferedReader(new InputStreamReader(___output, "UTF-8")))  {
                     sbFQFN.append(output.lines().collect(Collectors.joining("\n")));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -141,7 +147,7 @@ public final class KeytoolExecutor {
     }
 
     private void manageImportCertParam(final List<String> commands, final String ktCommand, final Path certPath) {
-        if ("-importcert".equalsIgnoreCase(ktCommand)) {
+        if (IMPORT_CERT_CMD.equalsIgnoreCase(ktCommand)) {
             commands.add("-file");
             final var certFile = certPath.toFile().getAbsolutePath();
             commands.add(certFile);
@@ -187,7 +193,7 @@ public final class KeytoolExecutor {
                     scriptCommands.add(String.join(" ", scriptCommand));
                 });
             } catch (IOException e) {
-                throw new KeytoolException(e.getMessage());
+                throw new KeytoolException(e.getMessage(), e);
             }
         }
 
@@ -320,11 +326,11 @@ public final class KeytoolExecutor {
 
     private void runCommand(final String ... commands) {
         if (!isNoop) {
-            int exitCode;
+            final int exitCode;
             try {
                 exitCode = CommandRunner.runCommand((___output, ___error) -> {
-                    try(var output = new BufferedReader(new InputStreamReader(___output));
-                        var error = new BufferedReader(new InputStreamReader(___error))) {
+                    try(var output = new BufferedReader(new InputStreamReader(___output, "UTF-8"));
+                        var error = new BufferedReader(new InputStreamReader(___error, "UTF-8"))) {
                         final var outputText = output.lines().collect(Collectors.joining("\n"));
                         final var errorText = error.lines().collect(Collectors.joining("\n"));
 
@@ -367,7 +373,7 @@ public final class KeytoolExecutor {
      * @return The command executed.
      */
     public String execute() {
-        String output;
+        final String output;
         if (isScriptMode) {
             output = executeScriptCommands();
         }
@@ -389,7 +395,7 @@ public final class KeytoolExecutor {
     /**
      * The only class that create an instance of KeytoolExecutor.
      */
-    public final static class KeytoolExecutorBuilder {
+    public static final class KeytoolExecutorBuilder {
         private final List<String> args;
         private final List<String> zArgs;
         private final Map<String, List<String>> fileArgs;

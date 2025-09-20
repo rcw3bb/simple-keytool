@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  */
 public final class CommandOutputFilter {
 
-    private final static List<String> REGISTRY_FILTERS;
+    private static final List<String> REGISTRY_FILTERS;
 
     static {
         REGISTRY_FILTERS = new ArrayList<>();

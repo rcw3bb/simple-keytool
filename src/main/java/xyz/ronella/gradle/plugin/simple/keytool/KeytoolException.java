@@ -27,4 +27,14 @@ public class KeytoolException extends GradleException {
     public KeytoolException(final String message) {
         super(message);
     }
+
+    /**
+     * Creates an instance of KeytoolException.
+     *
+     * @param message The message of the exception.
+     * @param cause The cause of the exception.
+     */
+    public KeytoolException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 }
